@@ -1,0 +1,64 @@
+{
+  "name": "koreainvestment-cli",
+  "version": "0.1.0",
+  "description": "Agent-friendly command-line interface for the Korea Investment & Securities (KIS) open trading API.",
+  "license": "MIT",
+  "author": "HyeokjaeLee",
+  "type": "module",
+  "bin": {
+    "kis": "./dist/cli.js",
+    "koreainvestment": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/cli.js",
+    "lint": "eslint \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.1.0",
+    "dayjs": "^1.11.13",
+    "prompts": "^2.4.2",
+    "undici": "^6.21.0",
+    "yaml": "^2.6.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/prompts": "^2.4.9",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "eslint": "^9.17.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "keywords": [
+    "koreainvestment",
+    "kis",
+    "cli",
+    "trading",
+    "stock",
+    "agent",
+    "opencode",
+    "claude-code"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HyeokjaeLee/koreainvestment-cli.git"
+  }
+}
