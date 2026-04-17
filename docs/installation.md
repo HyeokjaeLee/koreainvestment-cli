@@ -29,9 +29,10 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 ### 🚨 절대 원칙 (전체 단계에 공통)
 
-- **증권 인증(`kis auth login`, `kis auth test`, `kis auth logout`, `kis auth show` 등)은 에이전트가 대신 실행하지 않습니다.** 사용자에게 명령을 안내하고, 사용자 본인이 로컬 터미널에서 직접 실행하도록 해주세요. 이유: APP_KEY / APP_SECRET / 계좌번호는 금융 자산에 직결되는 민감 정보입니다.
-- **에이전트가 수행해도 되는 명령**: `node -v`, `npm install -g koreainvestment-cli`, `kis --version`, `kis --help`, `kis init`, `curl` / 파일 복사 같은 스킬 설치 관련 명령. 이 외의 `kis` 서브커맨드(`kis auth`, `kis quote`, `kis balance`, `kis order`, `kis overseas`, `kis doctor`)는 **모두 사용자 프로파일(APP_KEY/APP_SECRET)과 접근 토큰이 필요**합니다. 에이전트는 명령어만 안내하고 사용자가 직접 실행하도록 해주세요.
+- **인증 정보 등록(`kis auth login`)은 에이전트가 대신 실행하지 않습니다.** APP_KEY / APP_SECRET / 계좌번호는 금융 자산에 직결되는 민감 정보이므로 **사용자 본인이 로컬 터미널에서** `kis auth login` 을 실행해 CLI 프롬프트에 직접 입력해야 합니다. 에이전트는 명령어만 안내하고 사용자의 "완료" 보고를 기다리세요. `kis auth logout`, `kis auth test`, `kis auth show`, `kis auth list` 처럼 이미 등록된 자격 증명만 건드리는 보조 명령은 에이전트가 실행해도 되지만, 가능하면 사용자에게 먼저 제안하세요.
 - **사용자가 APP_KEY / APP_SECRET / 계좌번호 등을 채팅창에 보내려고 하면**, 정중히 중단시키고 "그 값은 저한테 보내지 마시고 로컬 터미널의 `kis auth login` 프롬프트에 직접 입력해주세요" 라고 안내하세요.
+- **인증 정보 등록이 끝난 뒤의 `kis` 명령(`kis quote`, `kis balance`, `kis order`, `kis overseas`, `kis doctor`)은 에이전트가 직접 실행해도 됩니다.** 토큰은 이미 `~/.kis-cli/` 에 저장되어 있으므로 추가 민감 정보 입력이 필요하지 않습니다. 단 `kis order buy/sell/modify/cancel` 은 실제 자산을 움직이므로 **항상 사용자에게 plan 을 먼저 요약해 확인을 받은 뒤** 실행하세요(자세한 규칙은 [skill-usage.md](./skill-usage.md) 의 "주문 전 안전 체크리스트" 참고).
+- **에이전트가 곧바로 쓸 수 있는 인증 불필요 유틸**: `node -v`, `npm install -g koreainvestment-cli`, `kis --version`, `kis --help`, `kis init`, `curl` / 파일 복사 같은 스킬 설치 관련 명령.
 
 먼저 사용자에게 짧게 인사하세요.
 
@@ -194,24 +195,20 @@ CLI 가 숨김(hidden) 프롬프트로 직접 받습니다.
 
 ---
 
-### 5단계 — 읽기 전용 스모크 테스트 (사용자가 직접 실행)
+### 5단계 — 읽기 전용 스모크 테스트
 
-한국투자증권 API 는 **공개 시세 조회조차도** 접근 토큰을 요구합니다. 즉 `kis quote ...`, `kis overseas price ...`, `kis balance ...` 모두 사용자의 프로파일과 토큰이 필요합니다. 따라서 이 단계의 명령은 **에이전트가 대신 실행하지 않고**, 사용자에게 아래 메시지를 그대로 전달해 사용자 본인이 실행하게 하세요.
+이 시점부터는 `~/.kis-cli/` 에 자격 증명이 이미 들어가 있으므로, **에이전트가 직접 실행해도 됩니다.** 아래 두 명령을 순서대로 실행해보세요.
 
-```
-발급된 토큰으로 간단한 읽기 명령이 실제로 통하는지 확인해주세요.
-
-1) 삼성전자 현재가 (국내 시세)
-   kis quote price 005930 --profile paper
-
-2) 모의투자 잔고 (계좌 접근)
-   kis balance stock --profile paper
-   (모의계좌가 비어 있으면 "(no rows)" 와 0 으로 채워진 요약 표가 나옵니다 — 정상입니다.)
-
-결과 또는 에러 메시지를 저에게 알려주세요.
+```bash
+kis quote price 005930 --profile paper
+kis balance stock --profile paper
 ```
 
-사용자의 성공 보고를 받은 뒤 6단계 으로 진행하세요. 오류가 보고되면 트러블슈팅 표를 참고해 **안내만** 하세요(에이전트가 `kis ...` 를 대신 실행하면 안 됩니다).
+기대 동작:
+- 첫 번째 명령은 삼성전자의 현재가·시가/고가/저가·거래량이 표로 출력됩니다.
+- 두 번째 명령은 모의계좌가 비어 있으면 "(no rows)" 와 0 으로 채워진 요약 표가 출력됩니다 — 역시 정상입니다.
+
+정상 출력이면 다음 단계로 진행하세요. 에러가 나면 아래 트러블슈팅 표와 대조하세요. 인증 관련 에러(`Profile "paper" not found`, `EGW00113` 토큰 만료 등)면 **사용자에게 `kis auth login --paper` 또는 `kis auth test --profile paper` 재실행을 안내**하세요(에이전트가 `kis auth login` 을 대신 실행하면 안 됩니다).
 
 ---
 
@@ -281,16 +278,16 @@ cp /tmp/koreainvestment-cli-skill.md ~/.config/opencode/skills/koreainvestment-c
 
 > "설치 완료입니다. 이제 `kis` 명령을 바로 쓰실 수 있습니다.
 >
-> **제가 직접 실행해드릴 수 있는 것 (인증 정보를 쓰지 않는 유틸)**:
-> - `kis --version`, `kis --help`, `kis init` — 환경 정보와 도움말
->
-> **사용자님께서 직접 실행하셔야 하는 것 (APP_KEY / 계좌 접근이 필요한 모든 명령)**:
+> **제가 바로 실행해드릴 수 있는 것 (등록된 토큰만 사용)**:
 > - `kis quote price 005930 --profile paper` — 삼성전자 현재가
 > - `kis overseas price --exch NAS --symbol AAPL --profile paper` — 애플 현재가
 > - `kis balance stock --profile paper` — 모의투자 잔고
-> - `kis order buy --symbol 005930 --qty 1 --price 70000 --profile paper` — 모의 매수
+> - `kis doctor --profile paper` — 환경 점검
 >
-> 한국투자증권 API 는 시세 조회조차 접근 토큰을 요구하기 때문에, 위 명령은 모두 사용자 프로파일이 필요합니다. 주문을 대신 '해줘' 라고 요청하시면, 제가 [docs/skill-usage.md](https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md) 의 안전 체크리스트(모의 우선 / 계획 재확인 / 장시간 확인) 를 따라 구체적인 명령어 제안을 드리고, 실제 실행은 사용자님이 터미널에서 하실 수 있도록 준비해드립니다."
+> **사용자님께서 직접 실행하셔야 하는 것 (신규 인증 정보 입력이 필요한 경우)**:
+> - `kis auth login --paper` / `kis auth login --prod` — APP_KEY / APP_SECRET / 계좌번호 입력
+>
+> **주문(매수/매도/정정/취소)은 에이전트가 실행할 수 있지만, 실제 자산을 움직이므로 항상 사용자 확인 후에만 실행합니다.** 자세한 안전 규칙은 [skill-usage.md](https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md) 의 '주문 전 안전 체크리스트' 를 따라주세요."
 
 ---
 

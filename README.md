@@ -54,9 +54,11 @@ npm install -g github:HyeokjaeLee/koreainvestment-cli
 
 ```
 아래 URL 의 설치 가이드를 한 글자도 빠짐없이 읽고, 그 지시에 따라 koreainvestment-cli 를
-내 환경에 설치해줘. 증권 인증(APP_KEY / APP_SECRET / 계좌번호) 은 네가 대신 입력하지 말고,
-내가 직접 로컬 터미널에서 입력할 수 있게 명령어만 안내해줘. 중간에 스킬 설치 여부를
-물어보면, 내 답을 받아서 그대로 처리해줘.
+내 환경에 설치해줘. APP_KEY / APP_SECRET / 계좌번호 같은 증권 인증 정보를 처음 등록하는
+`kis auth login` 단계는 네가 대신 입력하지 말고, 내가 직접 로컬 터미널에서 입력할 수
+있게 명령어만 안내해줘. 등록이 끝난 뒤의 시세·잔고·주문 명령은 네가 직접 실행해도
+괜찮아(주문은 실행 전에 나한테 확인 받아줘). 중간에 스킬 설치 여부를 물어보면, 내 답을
+받아서 그대로 처리해줘.
 
 https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/installation.md
 
@@ -67,8 +69,9 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 에이전트는 이 파일을 읽은 뒤:
 
 1. CLI(`npm install -g koreainvestment-cli`) 를 설치해주고,
-2. **사용자에게 `kis auth login --paper --make-default` 명령어를 안내**합니다. APP_KEY / APP_SECRET 은 에이전트가 절대 받지 않고, 사용자가 **로컬 터미널의 숨김(hidden) 프롬프트에 직접 입력**합니다(APP_KEY / APP_SECRET 만 입력이 가려지고, 계좌번호·계좌상품코드·HTS ID 는 일반 텍스트 입력입니다). 사용자가 입력을 마친 뒤 "완료" 라고 보고하도록 유도합니다.
+2. **사용자에게 `kis auth login --paper --make-default` 명령어를 안내**합니다. APP_KEY / APP_SECRET / 계좌번호는 에이전트가 절대 받지 않고, 사용자가 **로컬 터미널의 CLI 프롬프트에 직접 입력**합니다(APP_KEY / APP_SECRET 은 숨김 입력, 계좌번호·계좌상품코드·HTS ID 는 일반 텍스트 입력). 사용자가 입력을 마친 뒤 "완료" 라고 보고하도록 유도합니다.
 3. 이어서 [`docs/skill-usage.md`](./docs/skill-usage.md) 를 사용자에게 보여주며 **"이 CLI 를 능숙하게 다루는 스킬도 같이 설치할까요?"** 라고 물어봅니다. 동의하면 에이전트가 해당 스킬 파일을 자신의 스킬 저장 경로(OpenCode 는 `~/.config/opencode/skills/...`, Claude Code 는 `~/.claude/skills/...`)로 복사해줍니다.
+4. 등록이 끝난 뒤의 시세 조회(`kis quote`), 잔고 조회(`kis balance`), 해외 시세(`kis overseas`) 는 에이전트가 직접 실행해 결과를 해석해줍니다. 주문(`kis order buy/sell/modify/cancel`) 은 사용자 확인을 먼저 받은 뒤에만 실행합니다.
 
 ---
 
@@ -150,7 +153,7 @@ kis auth list
 
 ## 안전 유의사항
 
-1. **증권 인증은 에이전트가 아닌 사용자가 직접 수행합니다.** `kis auth login` / `kis auth test` / `kis auth show` 등 인증 계열 명령은 사용자가 로컬 터미널에서 직접 실행해야 합니다. 에이전트는 명령어만 안내하고, APP_KEY / APP_SECRET / 계좌번호는 채팅창이 아니라 CLI 프롬프트에만 입력되어야 합니다. APP_KEY · APP_SECRET 은 숨김(hidden) 입력으로 보호되고, 계좌번호 · 계좌상품코드 · HTS ID 는 일반 텍스트 입력입니다. (자세한 동작 원칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "황금 원칙" 참고)
+1. **신규 인증 정보 등록은 에이전트가 아닌 사용자가 직접 수행합니다.** `kis auth login` 은 APP_KEY / APP_SECRET / 계좌번호를 새로 받아 저장하는 명령이라 사용자가 로컬 터미널에서 직접 실행해야 합니다. APP_KEY · APP_SECRET 은 숨김(hidden) 입력으로 보호되고, 계좌번호 · 계좌상품코드 · HTS ID 는 일반 텍스트 입력입니다. 반면 등록 이후의 시세·잔고·주문·`kis auth test/show/list/logout` 명령은 저장된 토큰만 사용하므로 에이전트가 직접 실행해도 됩니다. (자세한 동작 원칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "황금 원칙" 참고)
 2. **주문 명령은 기본적으로 확인 프롬프트가 뜹니다.** `kis order buy ... -y` 로만 스킵됩니다. 스크립트에서 `-y` 를 쓰기 전에 반드시 `--profile paper` 로 한 번 돌려 보세요.
 3. **실전 투자를 위한 안전장치는 CLI 가 아닌 당신의 책임입니다.** 주문 수량, 가격, 종목코드의 검증은 호출자가 책임져야 합니다.
 4. **credentials 는 평문 YAML 로 저장됩니다.** 팀 머신이나 CI 에 올리지 마세요. 필요하다면 OS keychain 기반 저장소로 확장하세요.
