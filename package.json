@@ -1,6 +1,6 @@
 {
   "name": "koreainvestment-cli",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Agent-friendly command-line interface for the Korea Investment & Securities (KIS) open trading API.",
   "license": "MIT",
   "author": "HyeokjaeLee",
