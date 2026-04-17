@@ -12,10 +12,53 @@ import { ProfileSchema } from "../config/schema.js";
 import { log } from "../util/logger.js";
 import { promptCredentials } from "../util/prompts.js";
 
+interface LoginOpts {
+  paper?: boolean;
+  prod?: boolean;
+  name?: string;
+  makeDefault?: boolean;
+}
+
+async function runLogin(opts: LoginOpts): Promise<void> {
+  const env = opts.prod ? "prod" : "paper";
+  const profileName = opts.name ?? env;
+  const config = await loadConfig();
+  const existing = config.profiles[profileName];
+
+  const answers = await promptCredentials({ env, existing });
+
+  const profile = ProfileSchema.parse({
+    env,
+    appKey: answers.appKey,
+    appSecret: answers.appSecret,
+    accountNumber: answers.accountNumber,
+    accountProductCode: answers.accountProductCode,
+    htsId: answers.htsId,
+  });
+
+  await upsertProfile(profileName, profile, {
+    makeDefault: opts.makeDefault,
+  });
+
+  log.success(
+    `Profile "${profileName}" saved (env=${env}). Config: ~/.kis-cli/config.yaml`,
+  );
+  log.dim("Credentials are stored with mode 0600. Never commit this file.");
+}
+
 export function registerAuthCommands(root: Command): void {
   const auth = root
     .command("auth")
-    .description("Manage Korea Investment API credentials");
+    .description(
+      "Manage Korea Investment API credentials (default: interactive login)",
+    )
+    .option("--paper", "Save as paper (모의투자) profile", false)
+    .option("--prod", "Save as production (실전투자) profile", false)
+    .option("--name <name>", "Profile name (default: prod or paper)")
+    .option("--make-default", "Set this profile as default", false)
+    .action(async (opts: LoginOpts) => {
+      await runLogin(opts);
+    });
 
   auth
     .command("login")
@@ -24,34 +67,8 @@ export function registerAuthCommands(root: Command): void {
     .option("--prod", "Save as production (실전투자) profile", false)
     .option("--name <name>", "Profile name (default: prod or paper)")
     .option("--make-default", "Set this profile as default", false)
-    .action(async (opts) => {
-      const env = opts.prod ? "prod" : "paper";
-      const profileName = opts.name ?? env;
-      const config = await loadConfig();
-      const existing = config.profiles[profileName];
-
-      const answers = await promptCredentials({
-        env,
-        existing,
-      });
-
-      const profile = ProfileSchema.parse({
-        env,
-        appKey: answers.appKey,
-        appSecret: answers.appSecret,
-        accountNumber: answers.accountNumber,
-        accountProductCode: answers.accountProductCode,
-        htsId: answers.htsId,
-      });
-
-      await upsertProfile(profileName, profile, {
-        makeDefault: opts.makeDefault,
-      });
-
-      log.success(
-        `Profile "${profileName}" saved (env=${env}). Config: ~/.kis-cli/config.yaml`,
-      );
-      log.dim("Credentials are stored with mode 0600. Never commit this file.");
+    .action(async (opts: LoginOpts) => {
+      await runLogin(opts);
     });
 
   auth
