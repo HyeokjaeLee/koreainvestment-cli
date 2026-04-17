@@ -169,29 +169,26 @@ CLI 가 숨김(hidden) 프롬프트로 직접 받습니다.
 
 ---
 
-### 4단계 — 인증 정보 검증 (사용자가 직접 실행)
+### 4단계 — 인증 정보 검증
 
-사용자에게 다음 명령을 직접 실행하라고 안내하세요. 에이전트가 대신 돌리지 않습니다(인증 정보 접근이 필요한 명령이므로).
+`kis auth test` 는 이미 저장된 APP_KEY/APP_SECRET 으로 **토큰 발급만** 시도하는 명령이라 새 민감 정보를 받지 않습니다. 따라서 **에이전트가 직접 실행**하세요.
 
-```
-다음 명령으로 발급된 토큰이 실제로 동작하는지 확인해주세요:
-
-   kis auth test --profile paper
-
-성공 시 출력:
-   ✓ Access token issued. Expires at 2026-04-19T...Z.
-   ✓ approval_key: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-
-결과를 저에게 알려주세요 (성공 / 실패 메시지).
+```bash
+kis auth test --profile paper
 ```
 
-사용자의 보고가 성공이면 5단계 로 넘어갑니다.
+기대 출력:
 
-**`EGW00101` 이나 `approval_key missing` 같은 오류 보고가 오면** 다음 트러블슈팅을 사용자에게 안내만 하세요(에이전트가 실행 금지).
+```
+✓ Access token issued. Expires at 2026-04-19T...Z.
+✓ approval_key: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
 
-- 사용자가 모의투자용 키를 넣었는지 재확인 요청 (실전 키를 섞어넣기 쉬움)
-- KIS 포털 점검 공지 확인: https://apiportal.koreainvestment.com/
-- 위 확인 후 `kis auth login --paper` 를 **사용자가 다시 실행**해 입력값을 재등록하도록 안내
+성공이면 5단계로 넘어갑니다.
+
+**실패 처리:**
+- `EGW00101` / `approval_key missing` → 저장된 키가 잘못되었을 수 있습니다. 사용자에게 원인(예: 모의·실전 키 섞임, KIS 포털 점검)을 설명하고, **`kis auth login --paper` 재실행은 사용자 본인이 직접** 하도록 안내하세요(에이전트가 `kis auth login` 을 대신 실행하면 안 됩니다). KIS 포털 점검 공지: https://apiportal.koreainvestment.com/
+- 그 외 일시 네트워크 오류 → 에이전트가 `kis auth test --profile paper` 한 번만 재시도.
 
 ---
 
@@ -208,7 +205,9 @@ kis balance stock --profile paper
 - 첫 번째 명령은 삼성전자의 현재가·시가/고가/저가·거래량이 표로 출력됩니다.
 - 두 번째 명령은 모의계좌가 비어 있으면 "(no rows)" 와 0 으로 채워진 요약 표가 출력됩니다 — 역시 정상입니다.
 
-정상 출력이면 다음 단계로 진행하세요. 에러가 나면 아래 트러블슈팅 표와 대조하세요. 인증 관련 에러(`Profile "paper" not found`, `EGW00113` 토큰 만료 등)면 **사용자에게 `kis auth login --paper` 또는 `kis auth test --profile paper` 재실행을 안내**하세요(에이전트가 `kis auth login` 을 대신 실행하면 안 됩니다).
+정상 출력이면 다음 단계로 진행하세요. 에러가 나면 아래 트러블슈팅 표와 대조하세요.
+- `Profile "paper" not found` → 아직 `kis auth login --paper` 가 실행되지 않은 상태입니다. **사용자에게** 해당 명령을 실행하라고 안내하세요(에이전트가 대신 실행하면 안 됩니다).
+- `EGW00113` 토큰 만료 → 에이전트가 직접 `kis auth test --profile paper` 로 토큰을 재발급한 뒤 원래 명령을 재시도하세요.
 
 ---
 
@@ -258,17 +257,17 @@ cp /tmp/koreainvestment-cli-skill.md ~/.config/opencode/skills/koreainvestment-c
 
 ### 7단계 — (선택) doctor 실행
 
-`kis doctor` 는 프로파일에 포함된 APP_KEY 로 토큰을 재발급해 동작 여부를 확인하므로, 이 명령도 **사용자가 직접 실행**하도록 안내하세요.
+`kis doctor` 는 저장된 APP_KEY 로 토큰을 재발급해 전체 환경이 정상인지 확인합니다. 새 민감 정보를 받지 않으므로 **에이전트가 직접 실행**하세요.
 
-```
-마지막으로 아래 명령을 실행해 전체 환경 점검을 해주세요:
-
-   kis doctor --profile paper
-
-5개 체크가 모두 ✓ 로 찍히면 완료입니다. ✗ 가 하나라도 있으면 결과를 알려주세요.
+```bash
+kis doctor --profile paper
 ```
 
-사용자가 에러를 보고하면 에이전트는 해당 증상을 4단계 / 트러블슈팅 표와 대조해 안내만 하세요. `kis auth login` 재실행 역시 사용자가 직접 합니다.
+모든 체크가 ✓ 로 찍히면 완료입니다. ✗ 가 있으면 아래 기준으로 처리하세요.
+- 인증 관련 ✗ (`Profile not found`, `approval_key missing` 등) → 사용자에게 `kis auth login --paper` 재실행을 안내(에이전트 대행 금지).
+- 그 외 ✗ (네트워크, TPS 초과 등) → 에이전트가 `kis doctor` 를 1회 재시도한 뒤, 그래도 실패하면 증상을 사용자에게 보고.
+
+인증 관련 실패의 경우에만 사용자에게 `kis auth login --paper` 재실행을 안내하세요. 그 외 증상은 에이전트가 4단계 / 트러블슈팅 표와 대조해 직접 재시도하거나 사용자에게 결과를 요약해 보고하세요.
 
 ---
 
