@@ -59,7 +59,7 @@ jobs:
       - name: Detect publish mode
         id: mode
         run: |
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+          if [[ -n "${{ inputs.tag }}" ]] || [[ "${{ github.ref_type }}" == "tag" ]]; then
             echo "mode=tag" >> "$GITHUB_OUTPUT"
           else
             echo "mode=branch" >> "$GITHUB_OUTPUT"
@@ -77,21 +77,21 @@ jobs:
             exit 1
           fi
 
-      - name: Check whether this version is already published
+      - name: Check whether this exact version is already published
         id: check
         run: |
           PKG_NAME=$(node -p "require('./package.json').name")
           PKG_VERSION=$(node -p "require('./package.json').version")
-          PUBLISHED=$(npm view "$PKG_NAME" version 2>/dev/null || echo "none")
+          EXISTS_VERSION=$(npm view "$PKG_NAME@$PKG_VERSION" version 2>/dev/null || true)
           echo "package=$PKG_NAME" >> "$GITHUB_OUTPUT"
           echo "local=$PKG_VERSION" >> "$GITHUB_OUTPUT"
-          echo "published=$PUBLISHED" >> "$GITHUB_OUTPUT"
-          if [ "$PKG_VERSION" = "$PUBLISHED" ]; then
+          echo "exists=$EXISTS_VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$EXISTS_VERSION" = "$PKG_VERSION" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::$PKG_NAME@$PKG_VERSION is already published - skipping publish step."
+            echo "::notice::$PKG_NAME@$PKG_VERSION already exists on npm - skipping publish step."
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Local $PKG_VERSION != published $PUBLISHED - will publish."
+            echo "::notice::$PKG_NAME@$PKG_VERSION not on npm yet - will publish."
           fi
 
       - name: Publish to npm (OIDC Trusted Publishing)

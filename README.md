@@ -208,7 +208,7 @@ npm publish --access public
 
 ### 이후 릴리스 (정식 경로)
 
-버전만 올리고 `main` 에 push 하면 끝입니다. 워크플로가 버전 일치 여부를 먼저 판단하므로, 태그 생성은 **직접 하지 마세요** — 수동 태그 push 는 같은 버전을 두 번 publish 하려다 npm 에서 403 으로 거절당하는 충돌을 유발할 수 있습니다.
+버전만 올리고 `main` 에 push 하면 끝입니다. 태그 생성 역시 워크플로가 알아서 하므로 **직접 만들지 않는 것이 간단합니다**.
 
 ```bash
 # 1. 버전만 올리고 커밋 (태그 생성 금지)
@@ -222,12 +222,12 @@ git push origin main
 
 워크플로가 수행하는 일:
 1. 타입체크 + 린트 + 빌드
-2. `package.json` 버전 vs `npm view <pkg> version` 비교 — 같으면 publish 건너뜀, 다르면 다음 단계 진행
+2. `package.json` 버전이 npm 레지스트리에 **이미 존재하는지** (`npm view <pkg>@<ver>`) 확인 — 존재하면 publish 건너뜀, 없으면 다음 단계 진행
 3. OIDC 로 npm 인증 후 `npm publish --access public` (provenance 자동 포함)
 4. `v<new-version>` 태그 자동 생성 · push
 5. GitHub Release 를 release notes 와 함께 자동 생성
 
-같은 워크플로는 `v*.*.*` 태그 push 와 `workflow_dispatch` 로도 트리거할 수 있지만(응급 복구용), **권장 경로는 위의 `main` push 단일 흐름**입니다. 두 경로 모두 publish 직전에 "이미 게시된 버전이면 건너뛰기" 가드를 통과하므로 같은 버전을 두 번 publish 할 수 없습니다.
+"이미 게시된 버전이면 건너뛰기" 가드는 `main` push · `v*.*.*` 태그 push · `workflow_dispatch` 세 가지 트리거 모두에서 동일하게 적용됩니다. 따라서 사용자가 실수로 이미 게시된 버전의 태그를 다시 push 해도, 같은 버전을 두 번 publish 하려는 시도는 일어나지 않습니다. 정식 릴리스는 위의 `main` push 하나로 충분하고, 태그 push 와 `workflow_dispatch` 는 응급 복구용으로만 남겨두세요.
 
 ---
 
