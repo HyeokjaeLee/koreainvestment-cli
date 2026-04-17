@@ -180,19 +180,41 @@ console.log(res.output);
 
 ## 배포 파이프라인 (Release)
 
-이 저장소에는 **자동 npm 배포 워크플로** 가 포함되어 있습니다.
+이 저장소에는 **npm Trusted Publishing (OIDC) 기반 자동 배포 워크플로** 가 포함되어 있습니다. `NPM_TOKEN` 같은 장기 시크릿이 **필요 없습니다** — GitHub Actions 의 OIDC 토큰을 npm registry 가 직접 검증합니다.
 
-- `.github/workflows/ci.yml` — 모든 push / PR 에서 `typecheck + lint + build` 실행
-- `.github/workflows/release.yml` — `v*` 태그 push 시 `npm publish` 자동 실행
+- `.github/workflows/ci.yml` — 모든 push / PR 에서 `typecheck + lint + build` 를 Node 18/20/22 매트릭스로 실행
+- `.github/workflows/release.yml` — `v*.*.*` 태그 push 시 Node 24 + 최신 npm 으로 `npm publish` 자동 실행 (OIDC 인증, provenance 자동 생성)
 
-신규 릴리즈 절차:
+### 최초 1회만 수동 (bootstrap)
+
+npm Trusted Publishing 은 패키지가 이미 npm 에 존재해야 설정할 수 있습니다. 그래서 **첫 0.1.0 은 수동으로** 올리고, 그 다음부터 자동 배포로 전환합니다.
+
+```bash
+# 1. npm 로그인 (브라우저 OAuth + 2FA)
+npm login
+
+# 2. 첫 publish
+npm publish --access public
+
+# 3. https://www.npmjs.com/package/koreainvestment-cli/access 에서
+#    Trusted Publisher → GitHub Actions 추가
+#    - Owner: HyeokjaeLee
+#    - Repository: koreainvestment-cli
+#    - Workflow: release.yml
+```
+
+### 그 다음부터는 태그만 푸시하면 자동 배포
 
 ```bash
 npm version patch    # 또는 minor / major
 git push && git push --tags
 ```
 
-`NPM_TOKEN` 시크릿은 저장소 Settings → Secrets and variables → Actions 에 등록되어 있어야 합니다.
+워크플로가:
+1. 타입체크 + 린트 + 빌드
+2. `package.json` 버전과 태그 일치 여부 확인
+3. OIDC 로 npm 인증 후 `npm publish --access public` (provenance 자동 포함)
+4. GitHub Release 를 release notes 와 함께 자동 생성
 
 ---
 
