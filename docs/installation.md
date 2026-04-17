@@ -30,7 +30,7 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 ### 🚨 절대 원칙 (전체 단계에 공통)
 
 - **증권 인증(`kis auth login`, `kis auth test`, `kis auth logout`, `kis auth show` 등)은 에이전트가 대신 실행하지 않습니다.** 사용자에게 명령을 안내하고, 사용자 본인이 로컬 터미널에서 직접 실행하도록 해주세요. 이유: APP_KEY / APP_SECRET / 계좌번호는 금융 자산에 직결되는 민감 정보입니다.
-- **에이전트가 수행해도 되는 명령**: `node -v`, `npm install -g koreainvestment-cli`, `kis --version`, `kis --help`, `kis init`, `kis quote ...` (공개 시세), `kis overseas price ...` (공개 시세), `curl`/파일 복사 같은 스킬 설치 관련 명령.
+- **에이전트가 수행해도 되는 명령**: `node -v`, `npm install -g koreainvestment-cli`, `kis --version`, `kis --help`, `kis init`, `curl` / 파일 복사 같은 스킬 설치 관련 명령. 이 외의 `kis` 서브커맨드(`kis auth`, `kis quote`, `kis balance`, `kis order`, `kis overseas`, `kis doctor`)는 **모두 사용자 프로파일(APP_KEY/APP_SECRET)과 접근 토큰이 필요**합니다. 에이전트는 명령어만 안내하고 사용자가 직접 실행하도록 해주세요.
 - **사용자가 APP_KEY / APP_SECRET / 계좌번호 등을 채팅창에 보내려고 하면**, 정중히 중단시키고 "그 값은 저한테 보내지 마시고 로컬 터미널의 `kis auth login` 프롬프트에 직접 입력해주세요" 라고 안내하세요.
 
 먼저 사용자에게 짧게 인사하세요.
@@ -41,9 +41,9 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 ---
 
-### Step 0 — 사전 정보 수집
+### 0단계 — 사전 정보 수집
 
-아래 질문을 **하나씩** 물어보고, 답을 기억해두세요. Step 3 에서 CLI 플래그 선택에 사용됩니다.
+아래 질문을 **하나씩** 물어보고, 답을 기억해두세요. 3단계 에서 CLI 플래그 선택에 사용됩니다.
 
 1. **한국투자증권 APP_KEY / APP_SECRET 이 이미 있나요?**
    - 없으면 [https://apiportal.koreainvestment.com/](https://apiportal.koreainvestment.com/) 에서 **모의투자용** 과 **실전투자용** 두 쌍을 각각 발급받아오라고 안내하세요. "yes" 답변 전까지는 다음 단계로 넘어가지 마세요.
@@ -55,7 +55,7 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 ---
 
-### Step 1 — Node.js 버전 확인
+### 1단계 — Node.js 버전 확인
 
 다음을 실행:
 
@@ -67,7 +67,7 @@ node -v
 
 ---
 
-### Step 2 — CLI 설치
+### 2단계 — CLI 설치
 
 다음 중 **하나**를 실행하세요. npm 레지스트리에 게시된 경우 첫 번째, 아직이면 두 번째(GitHub 직접 설치) 를 사용합니다. 두 경로 모두 동일한 바이너리를 설치합니다.
 
@@ -113,20 +113,20 @@ kis init
 
 ---
 
-### Step 3 — 인증 정보 등록 (사용자가 직접 실행)
+### 3단계 — 인증 정보 등록 (사용자가 직접 실행)
 
 > 🚨 **중요 원칙 — 증권 인증은 사용자가 직접 수행합니다.**
 >
 > 에이전트는 절대 `kis auth login` 을 대신 실행하거나, APP_KEY / APP_SECRET / 계좌번호를 대화창으로 받아 입력하면 안 됩니다. 한국투자증권 인증 정보는 금융 자산에 직결되는 민감 정보이므로 **사용자의 로컬 터미널에서만** 입력되어야 합니다.
 >
-> 에이전트가 할 일은 **명령어와 순서를 안내**하고, 사용자가 **"완료했어요"** 라고 보고하면 Step 4 로 넘어가는 것뿐입니다.
+> 에이전트가 할 일은 **명령어와 순서를 안내**하고, 사용자가 **"완료했어요"** 라고 보고하면 4단계 로 넘어가는 것뿐입니다.
 
 사용자에게 다음 메시지를 그대로 전달하세요(수정·요약 금지).
 
 ```
 아래 명령을 여러분의 로컬 터미널에서 직접 실행해주세요. 저(에이전트)는 이 명령을
 대신 실행할 수 없고, APP_KEY / APP_SECRET 같은 민감 정보는 제가 절대 보지 않도록
-CLI 가 숨겨진(hidden) 프롬프트로 직접 받습니다.
+CLI 가 숨김(hidden) 프롬프트로 직접 받습니다.
 
 ────────────────────────────────────────
 1. 모의투자 프로파일 등록 (권장: 먼저 이것부터)
@@ -134,11 +134,11 @@ CLI 가 숨겨진(hidden) 프롬프트로 직접 받습니다.
    kis auth login --paper --make-default
 
    명령을 실행하면 CLI 가 순서대로 다음을 물어봅니다:
-   - APP_KEY            (입력 내용이 화면에 안 보입니다)
-   - APP_SECRET         (입력 내용이 화면에 안 보입니다)
-   - 계좌번호 앞 8자리 (CANO)   예: 50123456
-   - 계좌상품코드            기본 01 (종합계좌)
-   - HTS ID              선택 (비워도 됨)
+   - APP_KEY                      (숨김 입력: 화면에 안 보입니다)
+   - APP_SECRET                   (숨김 입력: 화면에 안 보입니다)
+   - 계좌번호 앞 8자리 (CANO)      예: 50123456  (일반 텍스트 입력)
+   - 계좌상품코드                  기본 01 (종합계좌)  (일반 텍스트 입력)
+   - HTS ID                       선택, 비워도 됨  (일반 텍스트 입력)
 
    성공하면 "✓ Profile \"paper\" saved (env=paper). Config: ~/.kis-cli/config.yaml"
    메시지가 뜹니다.
@@ -153,13 +153,13 @@ CLI 가 숨겨진(hidden) 프롬프트로 직접 받습니다.
 ────────────────────────────────────────
 ```
 
-메시지 전달 후 **사용자 응답을 기다리고**, 그 전에는 Step 4 로 진행하지 마세요.
+메시지 전달 후 **사용자 응답을 기다리고**, 그 전에는 4단계 로 진행하지 마세요.
 
 사용자가 **인증 정보 값(APP_KEY, APP_SECRET, 계좌번호 등)을 채팅으로 보내려고 하면**, 정중히 중단시키고 다음과 같이 안내하세요.
 
 > "그 값들은 제게 보내시면 안 됩니다. 제 채팅 기록에는 저장되지 않지만, 보안상 로컬 터미널의 `kis auth login` 프롬프트에만 직접 입력해주세요. 다시 명령을 보여드릴게요: `kis auth login --paper --make-default`"
 
-사용자가 "완료" 를 보고하면 Step 4 로 넘어갑니다. 만약 오류가 났다고 하면, 에러 메시지 원문을 받아 Step 4 의 트러블슈팅 표를 참고해 안내하세요 — 이때도 `kis auth login` 을 에이전트가 대신 돌리면 **안 됩니다**.
+사용자가 "완료" 를 보고하면 4단계 로 넘어갑니다. 만약 오류가 났다고 하면, 에러 메시지 원문을 받아 4단계 의 트러블슈팅 표를 참고해 안내하세요 — 이때도 `kis auth login` 을 에이전트가 대신 돌리면 **안 됩니다**.
 
 **에이전트 금지 사항 요약:**
 - ❌ `kis auth login` 을 에이전트가 직접 실행
@@ -169,7 +169,7 @@ CLI 가 숨겨진(hidden) 프롬프트로 직접 받습니다.
 
 ---
 
-### Step 4 — 인증 정보 검증 (사용자가 직접 실행)
+### 4단계 — 인증 정보 검증 (사용자가 직접 실행)
 
 사용자에게 다음 명령을 직접 실행하라고 안내하세요. 에이전트가 대신 돌리지 않습니다(인증 정보 접근이 필요한 명령이므로).
 
@@ -185,7 +185,7 @@ CLI 가 숨겨진(hidden) 프롬프트로 직접 받습니다.
 결과를 저에게 알려주세요 (성공 / 실패 메시지).
 ```
 
-사용자의 보고가 성공이면 Step 5 로 넘어갑니다.
+사용자의 보고가 성공이면 5단계 로 넘어갑니다.
 
 **`EGW00101` 이나 `approval_key missing` 같은 오류 보고가 오면** 다음 트러블슈팅을 사용자에게 안내만 하세요(에이전트가 실행 금지).
 
@@ -195,32 +195,28 @@ CLI 가 숨겨진(hidden) 프롬프트로 직접 받습니다.
 
 ---
 
-### Step 5 — 읽기 전용 스모크 테스트
+### 5단계 — 읽기 전용 스모크 테스트 (사용자가 직접 실행)
 
-**공개 시세 조회(`kis quote ...`)는 에이전트가 직접 실행해도 됩니다.** 인증 정보 접근이 필요하지 않습니다. 삼성전자 현재가를 한 번 확인해보세요.
-
-```bash
-kis quote price 005930
-```
-
-삼성전자의 현재가, 시가/고가/저가, 거래량이 표로 출력되면 CLI 가 정상 동작하고 네트워크 경로도 깨끗하다는 뜻입니다.
-
-**계좌 잔고 조회(`kis balance ...`)는 사용자 프로파일이 필요하므로 사용자가 직접 실행합니다.** 에이전트는 다음 안내 메시지만 전달하세요.
+한국투자증권 API 는 **공개 시세 조회조차도** 접근 토큰을 요구합니다. 즉 `kis quote ...`, `kis overseas price ...`, `kis balance ...` 모두 사용자의 프로파일과 토큰이 필요합니다. 따라서 이 단계의 명령은 **에이전트가 대신 실행하지 않고**, 사용자에게 아래 메시지를 그대로 전달해 사용자 본인이 실행하게 하세요.
 
 ```
-다음 명령으로 모의계좌 잔고 조회가 되는지 확인해주세요:
+발급된 토큰으로 간단한 읽기 명령이 실제로 통하는지 확인해주세요.
 
+1) 삼성전자 현재가 (국내 시세)
+   kis quote price 005930 --profile paper
+
+2) 모의투자 잔고 (계좌 접근)
    kis balance stock --profile paper
+   (모의계좌가 비어 있으면 "(no rows)" 와 0 으로 채워진 요약 표가 나옵니다 — 정상입니다.)
 
-모의계좌가 비어 있으면 "(no rows)" 와 0 으로 채워진 요약 표가 나옵니다 — 이것도 정상입니다.
-에러가 나면 메시지를 그대로 알려주세요.
+결과 또는 에러 메시지를 저에게 알려주세요.
 ```
 
-사용자의 성공 보고를 받은 뒤 Step 6 으로 진행하세요.
+사용자의 성공 보고를 받은 뒤 6단계 으로 진행하세요. 오류가 보고되면 트러블슈팅 표를 참고해 **안내만** 하세요(에이전트가 `kis ...` 를 대신 실행하면 안 됩니다).
 
 ---
 
-### Step 6 — 스킬 설치 제안 (중요)
+### 6단계 — 스킬 설치 제안 (중요)
 
 CLI 설치가 끝났으면, **반드시** 사용자에게 스킬 설치 여부를 물어보세요. 이 단계는 생략 금지.
 
@@ -264,7 +260,7 @@ cp /tmp/koreainvestment-cli-skill.md ~/.config/opencode/skills/koreainvestment-c
 
 ---
 
-### Step 7 — (선택) doctor 실행
+### 7단계 — (선택) doctor 실행
 
 `kis doctor` 는 프로파일에 포함된 APP_KEY 로 토큰을 재발급해 동작 여부를 확인하므로, 이 명령도 **사용자가 직접 실행**하도록 안내하세요.
 
@@ -276,25 +272,26 @@ cp /tmp/koreainvestment-cli-skill.md ~/.config/opencode/skills/koreainvestment-c
 5개 체크가 모두 ✓ 로 찍히면 완료입니다. ✗ 가 하나라도 있으면 결과를 알려주세요.
 ```
 
-사용자가 에러를 보고하면 에이전트는 해당 증상을 Step 4 / 트러블슈팅 표와 대조해 안내만 하세요. `kis auth login` 재실행 역시 사용자가 직접 합니다.
+사용자가 에러를 보고하면 에이전트는 해당 증상을 4단계 / 트러블슈팅 표와 대조해 안내만 하세요. `kis auth login` 재실행 역시 사용자가 직접 합니다.
 
 ---
 
-### Step 8 — 마무리 보고
+### 8단계 — 마무리 보고
 
 1~7 단계가 모두 성공하면 사용자에게 다음 메시지를 전달하세요.
 
 > "설치 완료입니다. 이제 `kis` 명령을 바로 쓰실 수 있습니다.
 >
-> **제가 직접 실행해드릴 수 있는 것 (공개 시세)**:
-> - `kis quote price 005930` — 삼성전자 현재가
-> - `kis overseas price --exch NAS --symbol AAPL` — 애플 현재가
+> **제가 직접 실행해드릴 수 있는 것 (인증 정보를 쓰지 않는 유틸)**:
+> - `kis --version`, `kis --help`, `kis init` — 환경 정보와 도움말
 >
-> **사용자님께서 직접 실행하셔야 하는 것 (인증 정보 / 자산 접근)**:
+> **사용자님께서 직접 실행하셔야 하는 것 (APP_KEY / 계좌 접근이 필요한 모든 명령)**:
+> - `kis quote price 005930 --profile paper` — 삼성전자 현재가
+> - `kis overseas price --exch NAS --symbol AAPL --profile paper` — 애플 현재가
 > - `kis balance stock --profile paper` — 모의투자 잔고
 > - `kis order buy --symbol 005930 --qty 1 --price 70000 --profile paper` — 모의 매수
 >
-> 주문을 대신 '해줘' 라고 요청하시면, 제가 [docs/skill-usage.md](https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md) 의 안전 체크리스트(모의 우선 / 계획 재확인 / 장시간 확인) 를 먼저 따라서 구체적인 명령어 제안을 드리고, 실제 실행은 사용자님이 터미널에서 하실 수 있도록 준비해드립니다."
+> 한국투자증권 API 는 시세 조회조차 접근 토큰을 요구하기 때문에, 위 명령은 모두 사용자 프로파일이 필요합니다. 주문을 대신 '해줘' 라고 요청하시면, 제가 [docs/skill-usage.md](https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md) 의 안전 체크리스트(모의 우선 / 계획 재확인 / 장시간 확인) 를 따라 구체적인 명령어 제안을 드리고, 실제 실행은 사용자님이 터미널에서 하실 수 있도록 준비해드립니다."
 
 ---
 
@@ -302,7 +299,7 @@ cp /tmp/koreainvestment-cli-skill.md ~/.config/opencode/skills/koreainvestment-c
 
 | 증상 | 원인 | 조치 |
 |---|---|---|
-| `kis: command not found` | npm 전역 bin 이 PATH 에 없음 | 위 Step 2 의 쉘별 PATH 설정 (zsh 는 `~/.zshrc`, bash 는 `~/.bashrc`) 적용 후 터미널 재시작 |
+| `kis: command not found` | npm 전역 bin 이 PATH 에 없음 | 위 2단계 의 쉘별 PATH 설정 (zsh 는 `~/.zshrc`, bash 는 `~/.bashrc`) 적용 후 터미널 재시작 |
 | `Profile "paper" not found` | `kis auth login --paper` 미실행 | 로그인 재실행 |
 | `EGW00101 인증 실패` | 잘못된 APP_KEY / APP_SECRET | 모의/실전 키를 다시 확인 후 재등록 |
 | `EGW00201 TPS 초과` | rate limit | 잠시 대기 후 재시도. 모의계정은 500ms 최소 간격 |

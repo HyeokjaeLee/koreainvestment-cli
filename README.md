@@ -22,8 +22,8 @@ kis quote price 005930
 
 `koreainvestment-cli` 의 설계 철학은 다음과 같습니다.
 
-- **Agent-native** — 모든 명령이 한 줄로 실행되고, `--json` 플래그로 구조화된 출력을 반환합니다. 에이전트가 그대로 다음 단계 입력으로 파이프할 수 있습니다.
-- **Credentials-first UX** — `kis auth login` 한 번이면 APP_KEY / APP_SECRET / 계좌번호가 파일 권한 `0600` 으로 `~/.kis-cli/config.yaml` 에 저장됩니다.
+- **에이전트 친화 (agent-native)** — 모든 명령이 한 줄로 실행되고, `--json` 플래그로 구조화된 출력을 반환합니다. 에이전트가 그대로 다음 단계 입력으로 파이프할 수 있습니다.
+- **인증 정보 우선 UX** — `kis auth login` 한 번이면 APP_KEY / APP_SECRET / 계좌번호가 파일 권한 `0600` 으로 `~/.kis-cli/config.yaml` 에 저장됩니다.
 - **모의투자 · 실전투자 동시 지원** — `paper`(모의) · `prod`(실전) 프로파일을 함께 보관하고, TR_ID 가 환경에 따라 자동으로 `T → V` 로 변환됩니다.
 - **안전한 주문** — 주문 명령은 항상 확인 프롬프트를 띄웁니다. `-y / --yes` 를 명시해야만 건너뜁니다.
 
@@ -38,7 +38,7 @@ npm install -g koreainvestment-cli
 kis init
 ```
 
-그다음 [docs/installation.md](./docs/installation.md) 의 **"Step 3 — 인증 정보 등록"** 부분을 따라가세요.
+그다음 [docs/installation.md](./docs/installation.md) 의 **"3단계 — 인증 정보 등록"** 부분을 따라가세요.
 
 npm 레지스트리 미게시 상황이면 GitHub 주소로 설치하세요.
 
@@ -67,7 +67,7 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 에이전트는 이 파일을 읽은 뒤:
 
 1. CLI(`npm install -g koreainvestment-cli`) 를 설치해주고,
-2. **사용자에게 `kis auth login --paper --make-default` 명령어를 안내**합니다. APP_KEY / APP_SECRET / 계좌번호는 에이전트가 받지 않고, 사용자가 **로컬 터미널의 hidden 프롬프트에 직접 입력**한 뒤 "완료" 를 보고하도록 유도합니다.
+2. **사용자에게 `kis auth login --paper --make-default` 명령어를 안내**합니다. APP_KEY / APP_SECRET 은 에이전트가 절대 받지 않고, 사용자가 **로컬 터미널의 숨김(hidden) 프롬프트에 직접 입력**합니다(APP_KEY / APP_SECRET 만 입력이 가려지고, 계좌번호·계좌상품코드·HTS ID 는 일반 텍스트 입력입니다). 사용자가 입력을 마친 뒤 "완료" 라고 보고하도록 유도합니다.
 3. 이어서 [`docs/skill-usage.md`](./docs/skill-usage.md) 를 사용자에게 보여주며 **"이 CLI 를 능숙하게 다루는 스킬도 같이 설치할까요?"** 라고 물어봅니다. 동의하면 에이전트가 해당 스킬 파일을 자신의 스킬 저장 경로(OpenCode 는 `~/.config/opencode/skills/...`, Claude Code 는 `~/.claude/skills/...`)로 복사해줍니다.
 
 ---
@@ -123,7 +123,7 @@ LLM 에이전트가 이 CLI 를 능숙하고 안전하게 다루도록 만드는
 - 내용: 명령어 치트시트, 상호작용 패턴(시세 → 요약 / 잔고 → 테이블 / 매수 확인 → 주문), 에러 핸들링, 주문 전 안전 체크리스트
 - 형식: 상단에 YAML frontmatter(`name`, `description`) 가 있어 OpenCode / Claude Code 의 스킬 시스템에 그대로 등록할 수 있습니다.
 
-설치는 `installation.md` 의 **"Step 6 — 스킬 설치 제안"** 단계에서 에이전트가 사용자에게 물어본 뒤 자동으로 진행합니다.
+설치는 `installation.md` 의 **"6단계 — 스킬 설치 제안"** 단계에서 에이전트가 사용자에게 물어본 뒤 자동으로 진행합니다.
 
 ---
 
@@ -150,7 +150,7 @@ kis auth list
 
 ## 안전 유의사항
 
-1. **증권 인증은 에이전트가 아닌 사용자가 직접 수행합니다.** `kis auth login` / `kis auth test` / `kis auth show` 등 인증 계열 명령은 사용자가 로컬 터미널에서 직접 실행해야 합니다. 에이전트는 명령어만 안내하고, APP_KEY / APP_SECRET / 계좌번호는 채팅창이 아니라 CLI 의 hidden 프롬프트에만 입력되어야 합니다. (자세한 동작 원칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "황금 원칙" 참고)
+1. **증권 인증은 에이전트가 아닌 사용자가 직접 수행합니다.** `kis auth login` / `kis auth test` / `kis auth show` 등 인증 계열 명령은 사용자가 로컬 터미널에서 직접 실행해야 합니다. 에이전트는 명령어만 안내하고, APP_KEY / APP_SECRET / 계좌번호는 채팅창이 아니라 CLI 프롬프트에만 입력되어야 합니다. APP_KEY · APP_SECRET 은 숨김(hidden) 입력으로 보호되고, 계좌번호 · 계좌상품코드 · HTS ID 는 일반 텍스트 입력입니다. (자세한 동작 원칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "황금 원칙" 참고)
 2. **주문 명령은 기본적으로 확인 프롬프트가 뜹니다.** `kis order buy ... -y` 로만 스킵됩니다. 스크립트에서 `-y` 를 쓰기 전에 반드시 `--profile paper` 로 한 번 돌려 보세요.
 3. **실전 투자를 위한 안전장치는 CLI 가 아닌 당신의 책임입니다.** 주문 수량, 가격, 종목코드의 검증은 호출자가 책임져야 합니다.
 4. **credentials 는 평문 YAML 로 저장됩니다.** 팀 머신이나 CI 에 올리지 마세요. 필요하다면 OS keychain 기반 저장소로 확장하세요.
@@ -186,7 +186,9 @@ console.log(res.output);
 이 저장소에는 **npm Trusted Publishing (OIDC) 기반 자동 배포 워크플로** 가 포함되어 있습니다. `NPM_TOKEN` 같은 장기 시크릿이 **필요 없습니다** — GitHub Actions 의 OIDC 토큰을 npm registry 가 직접 검증합니다.
 
 - `.github/workflows/ci.yml` — 모든 push / PR 에서 `typecheck + lint + build` 를 Node 18/20/22 매트릭스로 실행
-- `.github/workflows/release.yml` — `v*.*.*` 태그 push 시 Node 24 + 최신 npm 으로 `npm publish` 자동 실행 (OIDC 인증, provenance 자동 생성)
+- `.github/workflows/release.yml` — 두 가지 트리거를 동시에 지원합니다.
+  - **`main` 브랜치에 push** 될 때마다 워크플로가 실행되고, `package.json` 버전이 npm 레지스트리의 최신 버전과 **다를 때만** 자동으로 publish 합니다. publish 가 성공하면 같은 버전의 `v*.*.*` 태그와 GitHub Release 를 자동 생성합니다.
+  - 사용자가 수동으로 `v*.*.*` 태그를 push 해도 동일하게 publish 되고, 이때는 태그와 `package.json` 의 버전 일치 여부를 함께 검증합니다.
 
 ### 최초 1회만 수동 (bootstrap)
 
@@ -206,18 +208,35 @@ npm publish --access public
 #    - Workflow: release.yml
 ```
 
-### 그 다음부터는 태그만 푸시하면 자동 배포
+### 그 다음부터 릴리스하는 두 가지 방법
+
+**방법 A — `main` 에 push 하면 자동 배포 (권장):**
 
 ```bash
-npm version patch    # 또는 minor / major
+# 1. 버전만 올리고 커밋
+npm version patch --no-git-tag-version     # 또는 minor / major
+git add package.json package-lock.json
+git commit -m "chore(release): bump version"
+
+# 2. main 에 push — 나머지는 워크플로가 처리합니다
+git push origin main
+```
+
+워크플로가 수행하는 일:
+1. 타입체크 + 린트 + 빌드
+2. `package.json` 버전 vs `npm view <pkg> version` 비교 — 같으면 publish 건너뜀, 다르면 다음 단계 진행
+3. OIDC 로 npm 인증 후 `npm publish --access public` (provenance 자동 포함)
+4. `v<new-version>` 태그 자동 생성 · push
+5. GitHub Release 를 release notes 와 함께 자동 생성
+
+**방법 B — `v*.*.*` 태그를 직접 push:**
+
+```bash
+npm version patch              # git tag 까지 함께 생성됨
 git push && git push --tags
 ```
 
-워크플로가:
-1. 타입체크 + 린트 + 빌드
-2. `package.json` 버전과 태그 일치 여부 확인
-3. OIDC 로 npm 인증 후 `npm publish --access public` (provenance 자동 포함)
-4. GitHub Release 를 release notes 와 함께 자동 생성
+이 경우 태그와 `package.json` 버전이 일치하는지 검증한 뒤 동일하게 publish 합니다.
 
 ---
 
