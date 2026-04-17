@@ -29,7 +29,7 @@ kis quote price 005930
 
 ---
 
-## 설치 (Installation)
+## 설치
 
 ### 사람이 직접 쓰는 경우
 
@@ -54,7 +54,9 @@ npm install -g github:HyeokjaeLee/koreainvestment-cli
 
 ```
 아래 URL 의 설치 가이드를 한 글자도 빠짐없이 읽고, 그 지시에 따라 koreainvestment-cli 를
-내 환경에 설치해줘. 중간에 스킬 설치 여부를 물어보면, 내 답을 받아서 그대로 처리해줘.
+내 환경에 설치해줘. 증권 인증(APP_KEY / APP_SECRET / 계좌번호) 은 네가 대신 입력하지 말고,
+내가 직접 로컬 터미널에서 입력할 수 있게 명령어만 안내해줘. 중간에 스킬 설치 여부를
+물어보면, 내 답을 받아서 그대로 처리해줘.
 
 https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/installation.md
 
@@ -64,13 +66,13 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 에이전트는 이 파일을 읽은 뒤:
 
-1. 이 CLI 를 설치하고,
-2. `kis auth login` 을 통해 APP_KEY / APP_SECRET / 계좌번호를 대화형으로 받아 저장해주고,
+1. CLI(`npm install -g koreainvestment-cli`) 를 설치해주고,
+2. **사용자에게 `kis auth login --paper --make-default` 명령어를 안내**합니다. APP_KEY / APP_SECRET / 계좌번호는 에이전트가 받지 않고, 사용자가 **로컬 터미널의 hidden 프롬프트에 직접 입력**한 뒤 "완료" 를 보고하도록 유도합니다.
 3. 이어서 [`docs/skill-usage.md`](./docs/skill-usage.md) 를 사용자에게 보여주며 **"이 CLI 를 능숙하게 다루는 스킬도 같이 설치할까요?"** 라고 물어봅니다. 동의하면 에이전트가 해당 스킬 파일을 자신의 스킬 저장 경로(OpenCode 는 `~/.config/opencode/skills/...`, Claude Code 는 `~/.claude/skills/...`)로 복사해줍니다.
 
 ---
 
-## 빠른 사용 예 (Quickstart)
+## 빠른 사용 예
 
 ```bash
 # 1. 먼저 모의투자 프로파일로 안전하게 연결
@@ -113,7 +115,7 @@ kis order buy --symbol 005930 --qty 1 --price 70000 --profile paper
 
 ---
 
-## 에이전트 스킬 (Skill)
+## 에이전트 스킬
 
 LLM 에이전트가 이 CLI 를 능숙하고 안전하게 다루도록 만드는 **사용 스킬** 이 함께 제공됩니다.
 
@@ -148,9 +150,10 @@ kis auth list
 
 ## 안전 유의사항
 
-1. **주문 명령은 기본적으로 확인 프롬프트가 뜹니다.** `kis order buy ... -y` 로만 스킵됩니다. 스크립트에서 `-y` 를 쓰기 전에 반드시 `--profile paper` 로 한 번 돌려 보세요.
-2. **실전 투자를 위한 안전장치는 CLI 가 아닌 당신의 책임입니다.** 주문 수량, 가격, 종목코드의 검증은 호출자가 책임져야 합니다.
-3. **credentials 는 평문 YAML 로 저장됩니다.** 팀 머신이나 CI 에 올리지 마세요. 필요하다면 OS keychain 기반 저장소로 확장하세요.
+1. **증권 인증은 에이전트가 아닌 사용자가 직접 수행합니다.** `kis auth login` / `kis auth test` / `kis auth show` 등 인증 계열 명령은 사용자가 로컬 터미널에서 직접 실행해야 합니다. 에이전트는 명령어만 안내하고, APP_KEY / APP_SECRET / 계좌번호는 채팅창이 아니라 CLI 의 hidden 프롬프트에만 입력되어야 합니다. (자세한 동작 원칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "황금 원칙" 참고)
+2. **주문 명령은 기본적으로 확인 프롬프트가 뜹니다.** `kis order buy ... -y` 로만 스킵됩니다. 스크립트에서 `-y` 를 쓰기 전에 반드시 `--profile paper` 로 한 번 돌려 보세요.
+3. **실전 투자를 위한 안전장치는 CLI 가 아닌 당신의 책임입니다.** 주문 수량, 가격, 종목코드의 검증은 호출자가 책임져야 합니다.
+4. **credentials 는 평문 YAML 로 저장됩니다.** 팀 머신이나 CI 에 올리지 마세요. 필요하다면 OS keychain 기반 저장소로 확장하세요.
 
 ---
 
@@ -178,7 +181,7 @@ console.log(res.output);
 
 ---
 
-## 배포 파이프라인 (Release)
+## 배포 파이프라인
 
 이 저장소에는 **npm Trusted Publishing (OIDC) 기반 자동 배포 워크플로** 가 포함되어 있습니다. `NPM_TOKEN` 같은 장기 시크릿이 **필요 없습니다** — GitHub Actions 의 OIDC 토큰을 npm registry 가 직접 검증합니다.
 

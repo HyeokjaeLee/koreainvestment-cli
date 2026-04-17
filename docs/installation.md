@@ -25,9 +25,17 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 ## LLM 에이전트를 위한 지시
 
-안녕하세요, 에이전트님. 당신은 사용자가 `koreainvestment-cli` — 한국투자증권 open-trading REST API 를 감싸는 TypeScript CLI — 를 설치하도록 도와야 합니다. 먼저 사용자에게 짧게 인사하세요.
+안녕하세요, 에이전트님. 당신은 사용자가 `koreainvestment-cli` — 한국투자증권 open-trading REST API 를 감싸는 TypeScript CLI — 를 설치하도록 도와야 합니다.
 
-> "알겠습니다. `koreainvestment-cli` 를 설치해드리겠습니다. 6~7단계 정도 걸리고, 중간에 KIS 앱키 / 앱시크릿 입력을 위한 대화형 프롬프트가 뜹니다. 추가로, 다 끝나면 이 CLI 를 능숙하게 다루는 에이전트 스킬도 설치할지 여쭤보겠습니다."
+### 🚨 절대 원칙 (전체 단계에 공통)
+
+- **증권 인증(`kis auth login`, `kis auth test`, `kis auth logout`, `kis auth show` 등)은 에이전트가 대신 실행하지 않습니다.** 사용자에게 명령을 안내하고, 사용자 본인이 로컬 터미널에서 직접 실행하도록 해주세요. 이유: APP_KEY / APP_SECRET / 계좌번호는 금융 자산에 직결되는 민감 정보입니다.
+- **에이전트가 수행해도 되는 명령**: `node -v`, `npm install -g koreainvestment-cli`, `kis --version`, `kis --help`, `kis init`, `kis quote ...` (공개 시세), `kis overseas price ...` (공개 시세), `curl`/파일 복사 같은 스킬 설치 관련 명령.
+- **사용자가 APP_KEY / APP_SECRET / 계좌번호 등을 채팅창에 보내려고 하면**, 정중히 중단시키고 "그 값은 저한테 보내지 마시고 로컬 터미널의 `kis auth login` 프롬프트에 직접 입력해주세요" 라고 안내하세요.
+
+먼저 사용자에게 짧게 인사하세요.
+
+> "알겠습니다. `koreainvestment-cli` 를 설치해드리겠습니다. 총 8단계입니다. 증권 인증 정보 입력은 보안상 **사용자께서 직접** 로컬 터미널에서 해주셔야 하고, 제가 명령어를 안내해드립니다. 다 끝나면 이 CLI 를 능숙하게 다루는 에이전트 스킬도 설치할지 여쭤보겠습니다."
 
 그리고 아래 단계를 **순서대로** 모두 수행하세요. 건너뛰지 마세요.
 
@@ -78,11 +86,23 @@ kis --version
 # 예: 0.1.0 (또는 그 이상)
 ```
 
-만약 `kis: command not found` 가 뜨면 사용자의 전역 `bin` 이 `PATH` 에 없을 확률이 높습니다. 쉘별 조치:
+만약 `kis: command not found` 가 뜨면 사용자의 전역 `bin` 이 `PATH` 에 없을 확률이 높습니다. 사용자 쉘에 맞춰 다음 중 하나를 실행하도록 안내하세요.
 
 ```bash
-# bash / zsh
+# zsh 를 쓰는 경우
 echo 'export PATH="$(npm prefix -g)/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+
+# bash 를 쓰는 경우
+echo 'export PATH="$(npm prefix -g)/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+
+# fish 를 쓰는 경우
+fish_add_path (npm prefix -g)/bin
+```
+
+또는 설치 자체가 막혔다면 GitHub 직접 설치를 시도하세요 (clone 시점에 자동 빌드됩니다).
+
+```bash
+npm install -g github:HyeokjaeLee/koreainvestment-cli
 ```
 
 온보딩 요약을 보려면:
@@ -93,80 +113,110 @@ kis init
 
 ---
 
-### Step 3 — 인증 정보 등록 (`kis auth login`)
+### Step 3 — 인증 정보 등록 (사용자가 직접 실행)
 
-**반드시 실제 터미널 TTY 에서 대화형으로 실행하세요.** `kis auth login` 은 hidden password 프롬프트를 사용하므로 스크립트로 감싸면 안 됩니다.
+> 🚨 **중요 원칙 — 증권 인증은 사용자가 직접 수행합니다.**
+>
+> 에이전트는 절대 `kis auth login` 을 대신 실행하거나, APP_KEY / APP_SECRET / 계좌번호를 대화창으로 받아 입력하면 안 됩니다. 한국투자증권 인증 정보는 금융 자산에 직결되는 민감 정보이므로 **사용자의 로컬 터미널에서만** 입력되어야 합니다.
+>
+> 에이전트가 할 일은 **명령어와 순서를 안내**하고, 사용자가 **"완료했어요"** 라고 보고하면 Step 4 로 넘어가는 것뿐입니다.
 
-```bash
-kis auth login --paper --make-default
-```
-
-CLI 가 순서대로 물어봅니다.
-
-1. `APP_KEY` (숨겨진 입력)
-2. `APP_SECRET` (숨겨진 입력)
-3. `계좌번호 앞 8자리 (CANO)` — 정확히 8자리
-4. `계좌상품코드` — 2자리, 기본값 `01` (종합계좌)
-5. `HTS ID` — 선택, 비워도 됨
-
-완료되면 다음 메시지가 출력됩니다.
+사용자에게 다음 메시지를 그대로 전달하세요(수정·요약 금지).
 
 ```
-✓ Profile "paper" saved (env=paper). Config: ~/.kis-cli/config.yaml
+아래 명령을 여러분의 로컬 터미널에서 직접 실행해주세요. 저(에이전트)는 이 명령을
+대신 실행할 수 없고, APP_KEY / APP_SECRET 같은 민감 정보는 제가 절대 보지 않도록
+CLI 가 숨겨진(hidden) 프롬프트로 직접 받습니다.
+
+────────────────────────────────────────
+1. 모의투자 프로파일 등록 (권장: 먼저 이것부터)
+
+   kis auth login --paper --make-default
+
+   명령을 실행하면 CLI 가 순서대로 다음을 물어봅니다:
+   - APP_KEY            (입력 내용이 화면에 안 보입니다)
+   - APP_SECRET         (입력 내용이 화면에 안 보입니다)
+   - 계좌번호 앞 8자리 (CANO)   예: 50123456
+   - 계좌상품코드            기본 01 (종합계좌)
+   - HTS ID              선택 (비워도 됨)
+
+   성공하면 "✓ Profile \"paper\" saved (env=paper). Config: ~/.kis-cli/config.yaml"
+   메시지가 뜹니다.
+
+2. (선택) 실전투자도 함께 등록하고 싶다면
+
+   kis auth login --prod --name prod
+
+   APP_KEY / APP_SECRET 은 실전 키 쌍으로 입력해주세요.
+
+3. 등록이 끝나면 저한테 "완료" 또는 "done" 이라고 알려주세요.
+────────────────────────────────────────
 ```
 
-사용자가 **실전투자도 함께 등록**하고 싶다고 하면:
+메시지 전달 후 **사용자 응답을 기다리고**, 그 전에는 Step 4 로 진행하지 마세요.
 
-```bash
-kis auth login --prod --name prod
-```
+사용자가 **인증 정보 값(APP_KEY, APP_SECRET, 계좌번호 등)을 채팅으로 보내려고 하면**, 정중히 중단시키고 다음과 같이 안내하세요.
 
-**에이전트 원칙:** 사용자의 APP_KEY / APP_SECRET 을 채팅창에 절대로 읽어주지도, 저장하지도 마세요. 이 값들은 오직 `~/.kis-cli/config.yaml` (권한 `0600`) 안에만 존재해야 합니다.
+> "그 값들은 제게 보내시면 안 됩니다. 제 채팅 기록에는 저장되지 않지만, 보안상 로컬 터미널의 `kis auth login` 프롬프트에만 직접 입력해주세요. 다시 명령을 보여드릴게요: `kis auth login --paper --make-default`"
+
+사용자가 "완료" 를 보고하면 Step 4 로 넘어갑니다. 만약 오류가 났다고 하면, 에러 메시지 원문을 받아 Step 4 의 트러블슈팅 표를 참고해 안내하세요 — 이때도 `kis auth login` 을 에이전트가 대신 돌리면 **안 됩니다**.
+
+**에이전트 금지 사항 요약:**
+- ❌ `kis auth login` 을 에이전트가 직접 실행
+- ❌ APP_KEY / APP_SECRET / 계좌번호를 채팅창에서 받아 전달
+- ❌ `~/.kis-cli/config.yaml` 의 내용을 읽어 화면에 표시
+- ✅ 위 명령과 안내 메시지만 그대로 사용자에게 전달하고, 완료 보고 기다리기
 
 ---
 
-### Step 4 — 인증 정보 검증
+### Step 4 — 인증 정보 검증 (사용자가 직접 실행)
 
-KIS 서버를 상대로 실제 access token 을 발급받아 검증합니다.
-
-```bash
-kis auth test --profile paper
-```
-
-예상 출력:
+사용자에게 다음 명령을 직접 실행하라고 안내하세요. 에이전트가 대신 돌리지 않습니다(인증 정보 접근이 필요한 명령이므로).
 
 ```
-Issuing access token for profile "paper" (paper)...
-✓ Access token issued. Expires at 2026-04-19T...Z.
-Issuing WebSocket approval key...
-✓ approval_key: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+다음 명령으로 발급된 토큰이 실제로 동작하는지 확인해주세요:
+
+   kis auth test --profile paper
+
+성공 시 출력:
+   ✓ Access token issued. Expires at 2026-04-19T...Z.
+   ✓ approval_key: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+결과를 저에게 알려주세요 (성공 / 실패 메시지).
 ```
 
-**`EGW00101` 이나 `approval_key missing` 같은 오류가 나오면:**
+사용자의 보고가 성공이면 Step 5 로 넘어갑니다.
 
-- 사용자가 모의투자용 키를 넣었는지 다시 확인하세요 (실전 키를 섞어넣기 쉽습니다).
-- KIS 포털의 점검 공지 확인: [https://apiportal.koreainvestment.com/](https://apiportal.koreainvestment.com/)
-- `kis auth login --paper` 를 재실행해 다시 입력받으세요.
+**`EGW00101` 이나 `approval_key missing` 같은 오류 보고가 오면** 다음 트러블슈팅을 사용자에게 안내만 하세요(에이전트가 실행 금지).
+
+- 사용자가 모의투자용 키를 넣었는지 재확인 요청 (실전 키를 섞어넣기 쉬움)
+- KIS 포털 점검 공지 확인: https://apiportal.koreainvestment.com/
+- 위 확인 후 `kis auth login --paper` 를 **사용자가 다시 실행**해 입력값을 재등록하도록 안내
 
 ---
 
 ### Step 5 — 읽기 전용 스모크 테스트
 
-시세 조회가 되는지 확인:
+**공개 시세 조회(`kis quote ...`)는 에이전트가 직접 실행해도 됩니다.** 인증 정보 접근이 필요하지 않습니다. 삼성전자 현재가를 한 번 확인해보세요.
 
 ```bash
 kis quote price 005930
 ```
 
-삼성전자 현재가, 시가/고가/저가, 거래량 등이 표 형태로 찍히면 성공입니다.
+삼성전자의 현재가, 시가/고가/저가, 거래량이 표로 출력되면 CLI 가 정상 동작하고 네트워크 경로도 깨끗하다는 뜻입니다.
 
-계좌 잔고 조회도 확인:
+**계좌 잔고 조회(`kis balance ...`)는 사용자 프로파일이 필요하므로 사용자가 직접 실행합니다.** 에이전트는 다음 안내 메시지만 전달하세요.
 
-```bash
-kis balance stock --profile paper
+```
+다음 명령으로 모의계좌 잔고 조회가 되는지 확인해주세요:
+
+   kis balance stock --profile paper
+
+모의계좌가 비어 있으면 "(no rows)" 와 0 으로 채워진 요약 표가 나옵니다 — 이것도 정상입니다.
+에러가 나면 메시지를 그대로 알려주세요.
 ```
 
-모의계정이 비어 있다면 `(no rows)` + 0 으로 채워진 요약 표가 나옵니다 — 이것도 정상입니다.
+사용자의 성공 보고를 받은 뒤 Step 6 으로 진행하세요.
 
 ---
 
@@ -216,14 +266,17 @@ cp /tmp/koreainvestment-cli-skill.md ~/.config/opencode/skills/koreainvestment-c
 
 ### Step 7 — (선택) doctor 실행
 
-```bash
-kis doctor --profile paper
+`kis doctor` 는 프로파일에 포함된 APP_KEY 로 토큰을 재발급해 동작 여부를 확인하므로, 이 명령도 **사용자가 직접 실행**하도록 안내하세요.
+
+```
+마지막으로 아래 명령을 실행해 전체 환경 점검을 해주세요:
+
+   kis doctor --profile paper
+
+5개 체크가 모두 ✓ 로 찍히면 완료입니다. ✗ 가 하나라도 있으면 결과를 알려주세요.
 ```
 
-5개 체크가 모두 녹색(✓) 이면 완료입니다. 어느 하나라도 빨간색(✗) 이면:
-
-- 에러 메시지를 사용자에게 그대로 공유하고
-- 해당 단계(`kis auth login` 또는 Node 버전 등) 를 다시 시도하라고 안내하세요.
+사용자가 에러를 보고하면 에이전트는 해당 증상을 Step 4 / 트러블슈팅 표와 대조해 안내만 하세요. `kis auth login` 재실행 역시 사용자가 직접 합니다.
 
 ---
 
@@ -231,12 +284,17 @@ kis doctor --profile paper
 
 1~7 단계가 모두 성공하면 사용자에게 다음 메시지를 전달하세요.
 
-> "설치 완료입니다. 이제 `kis` 명령을 바로 쓰실 수 있습니다. 예시:
+> "설치 완료입니다. 이제 `kis` 명령을 바로 쓰실 수 있습니다.
+>
+> **제가 직접 실행해드릴 수 있는 것 (공개 시세)**:
 > - `kis quote price 005930` — 삼성전자 현재가
-> - `kis balance stock` — 모의투자 잔고
+> - `kis overseas price --exch NAS --symbol AAPL` — 애플 현재가
+>
+> **사용자님께서 직접 실행하셔야 하는 것 (인증 정보 / 자산 접근)**:
+> - `kis balance stock --profile paper` — 모의투자 잔고
 > - `kis order buy --symbol 005930 --qty 1 --price 70000 --profile paper` — 모의 매수
 >
-> 주문 요청을 주시면 제가 [docs/skill-usage.md](https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md) 의 안전 체크리스트를 따라서 안전하게 처리해드립니다."
+> 주문을 대신 '해줘' 라고 요청하시면, 제가 [docs/skill-usage.md](https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md) 의 안전 체크리스트(모의 우선 / 계획 재확인 / 장시간 확인) 를 먼저 따라서 구체적인 명령어 제안을 드리고, 실제 실행은 사용자님이 터미널에서 하실 수 있도록 준비해드립니다."
 
 ---
 
@@ -244,7 +302,7 @@ kis doctor --profile paper
 
 | 증상 | 원인 | 조치 |
 |---|---|---|
-| `kis: command not found` | npm 전역 bin 이 PATH 에 없음 | 쉘 rc 에 export 추가하거나 `npx koreainvestment-cli` 사용 |
+| `kis: command not found` | npm 전역 bin 이 PATH 에 없음 | 위 Step 2 의 쉘별 PATH 설정 (zsh 는 `~/.zshrc`, bash 는 `~/.bashrc`) 적용 후 터미널 재시작 |
 | `Profile "paper" not found` | `kis auth login --paper` 미실행 | 로그인 재실행 |
 | `EGW00101 인증 실패` | 잘못된 APP_KEY / APP_SECRET | 모의/실전 키를 다시 확인 후 재등록 |
 | `EGW00201 TPS 초과` | rate limit | 잠시 대기 후 재시도. 모의계정은 500ms 최소 간격 |
@@ -253,7 +311,7 @@ kis doctor --profile paper
 
 ---
 
-## 제거 (Uninstall)
+## 제거
 
 ```bash
 npm uninstall -g koreainvestment-cli
