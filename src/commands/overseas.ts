@@ -41,7 +41,7 @@ export function registerOverseasCommands(root: Command): void {
 
   os
     .command("price")
-    .description("해외주식 현재가 (HHDFS76240000)")
+    .description("해외주식 현재가 (HHDFS00000300)")
     .requiredOption("--exch <code>", `Exchange: ${EXCHANGES.join(",")}`)
     .requiredOption("--symbol <code>", "Ticker, e.g. AAPL, TSLA, 0700")
     .option("--profile <name>")
@@ -56,7 +56,7 @@ export function registerOverseasCommands(root: Command): void {
       const res = await client.call({
         method: "GET",
         path: "/uapi/overseas-price/v1/quotations/price",
-        trId: "HHDFS76240000",
+        trId: "HHDFS00000300",
         query: {
           AUTH: "",
           EXCD: shortExch(opts.exch),
