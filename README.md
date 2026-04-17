@@ -105,7 +105,7 @@ kis order buy --symbol 005930 --qty 1 --price 70000 --profile paper
 | 계좌 자산 요약 | `kis balance account` | `CTRP6548R` |
 | 매수가능 금액 | `kis balance orderable --symbol …` | `TTTC8908R` |
 | 현금 매수 / 매도 | `kis order buy / sell` | `TTTC0012U / TTTC0011U` |
-| 정정 / 취소 | `kis order modify / cancel` | `TTTC0801U` |
+| 정정 / 취소 | `kis order modify / cancel` | `TTTC0013U` |
 | 해외주식 현재가 | `kis overseas price --exch NAS --symbol AAPL` | `HHDFS00000300` |
 | 해외 잔고 | `kis overseas balance --exch NASD` | `TTTS3012R` |
 | 해외 매수 / 매도 (미국) | `kis overseas buy / sell` | `TTTT1002U / TTTT1006U` |

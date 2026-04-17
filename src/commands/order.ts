@@ -43,9 +43,9 @@ async function placeOrder(side: Side, opts: OrderOpts): Promise<void> {
       ORD_DVSN: division,
       ORD_QTY: qty,
       ORD_UNPR: price,
-      EXCG_ID_DVSN_CD: "KRX",
-      SLL_TYPE: side === "sell" ? "01" : "",
-      CNDT_PRIC: "",
+      EXCG_ID_DVSN_CD: opts.exchange ?? "KRX",
+      SLL_TYPE: side === "sell" ? opts.sellType ?? "01" : "",
+      CNDT_PRIC: opts.conditionPrice ?? "",
     },
   });
 
@@ -62,6 +62,9 @@ interface OrderOpts {
   qty: string;
   price?: string;
   division: string;
+  exchange?: string;
+  sellType?: string;
+  conditionPrice?: string;
   profile?: string;
   yes?: boolean;
   json?: boolean;
@@ -80,6 +83,15 @@ export function registerOrderCommands(root: Command): void {
         "ORD_DVSN: 00=지정가, 01=시장가, 02=조건부지정가, ...",
         "00",
       )
+      .option("--exchange <code>", "EXCG_ID_DVSN_CD: KRX, NXT, SOR", "KRX")
+      .option(
+        "--sell-type <code>",
+        "SLL_TYPE (sell only): 01=일반매도, 02=임의매매, 05=대차매도",
+      )
+      .option(
+        "--condition-price <krw>",
+        "CNDT_PRIC: 스탑지정가호가 조건가격 (optional)",
+      )
       .option("--profile <name>")
       .option("-y, --yes", "Skip confirmation", false)
       .option("--json", "Output raw JSON", false);
@@ -92,13 +104,14 @@ export function registerOrderCommands(root: Command): void {
 
   order
     .command("modify")
-    .description("주식주문(정정) - TTTC0801U")
+    .description("주식주문(정정) - TTTC0013U / VTTC0013U")
     .requiredOption("--org-order-no <no>", "Original ODNO")
     .requiredOption("--order-branch <no>", "KRX_FWDG_ORD_ORGNO")
     .requiredOption("--qty <n>", "New qty (or 0 with --all)")
     .option("--price <krw>", "New limit price", "0")
     .option("--division <code>", "ORD_DVSN", "00")
     .option("--all", "Modify full remaining qty (QTY_ALL_ORD_YN=Y)", false)
+    .option("--exchange <code>", "EXCG_ID_DVSN_CD: KRX, NXT, SOR", "KRX")
     .option("--profile <name>")
     .option("-y, --yes", "Skip confirmation", false)
     .option("--json")
@@ -119,7 +132,7 @@ export function registerOrderCommands(root: Command): void {
       const res = await client.call({
         method: "POST",
         path: "/uapi/domestic-stock/v1/trading/order-rvsecncl",
-        trId: "TTTC0801U",
+        trId: "TTTC0013U",
         body: {
           CANO: profile.accountNumber,
           ACNT_PRDT_CD: profile.accountProductCode,
@@ -130,7 +143,7 @@ export function registerOrderCommands(root: Command): void {
           ORD_QTY: opts.qty,
           ORD_UNPR: opts.price,
           QTY_ALL_ORD_YN: opts.all ? "Y" : "N",
-          EXCG_ID_DVSN_CD: "KRX",
+          EXCG_ID_DVSN_CD: opts.exchange,
         },
       });
       if (opts.json) outputJson(res);
@@ -139,11 +152,12 @@ export function registerOrderCommands(root: Command): void {
 
   order
     .command("cancel")
-    .description("주식주문(취소) - TTTC0801U with RVSE_CNCL_DVSN_CD=02")
+    .description("주식주문(취소) - TTTC0013U with RVSE_CNCL_DVSN_CD=02")
     .requiredOption("--org-order-no <no>")
     .requiredOption("--order-branch <no>")
     .option("--qty <n>", "Partial cancel qty (ignored with --all)", "0")
     .option("--all", "Cancel full remaining qty", true)
+    .option("--exchange <code>", "EXCG_ID_DVSN_CD: KRX, NXT, SOR", "KRX")
     .option("--profile <name>")
     .option("-y, --yes", "Skip confirmation", false)
     .option("--json")
@@ -164,7 +178,7 @@ export function registerOrderCommands(root: Command): void {
       const res = await client.call({
         method: "POST",
         path: "/uapi/domestic-stock/v1/trading/order-rvsecncl",
-        trId: "TTTC0801U",
+        trId: "TTTC0013U",
         body: {
           CANO: profile.accountNumber,
           ACNT_PRDT_CD: profile.accountProductCode,
@@ -175,7 +189,7 @@ export function registerOrderCommands(root: Command): void {
           ORD_QTY: opts.qty,
           ORD_UNPR: "0",
           QTY_ALL_ORD_YN: opts.all ? "Y" : "N",
-          EXCG_ID_DVSN_CD: "KRX",
+          EXCG_ID_DVSN_CD: opts.exchange,
         },
       });
       if (opts.json) outputJson(res);
