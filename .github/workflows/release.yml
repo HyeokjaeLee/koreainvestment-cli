@@ -13,6 +13,12 @@ on:
         required: false
         type: string
 
+# Serialize publish attempts so a branch push and a tag push pointing at the same
+# commit cannot double-publish. Runs are queued, not cancelled.
+concurrency:
+  group: release-publish
+  cancel-in-progress: false
+
 jobs:
   publish:
     name: Publish to npm
@@ -71,9 +77,8 @@ jobs:
             exit 1
           fi
 
-      - name: Check whether current package.json version is already published (branch mode)
+      - name: Check whether this version is already published
         id: check
-        if: steps.mode.outputs.mode == 'branch'
         run: |
           PKG_NAME=$(node -p "require('./package.json').name")
           PKG_VERSION=$(node -p "require('./package.json').version")
@@ -90,7 +95,7 @@ jobs:
           fi
 
       - name: Publish to npm (OIDC Trusted Publishing)
-        if: steps.mode.outputs.mode == 'tag' || steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.skip == 'false'
         run: npm publish --access public
 
       - name: Create git tag for branch-mode publish
@@ -102,16 +107,8 @@ jobs:
           git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
           git push origin "$NEW_TAG"
 
-      - name: Create GitHub Release (tag mode)
-        if: steps.mode.outputs.mode == 'tag'
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Release (branch mode)
-        if: steps.mode.outputs.mode == 'branch' && steps.check.outputs.skip == 'false'
+      - name: Create GitHub Release
+        if: steps.check.outputs.skip == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.check.outputs.local }}

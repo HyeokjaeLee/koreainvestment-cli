@@ -185,10 +185,8 @@ console.log(res.output);
 
 이 저장소에는 **npm Trusted Publishing (OIDC) 기반 자동 배포 워크플로** 가 포함되어 있습니다. `NPM_TOKEN` 같은 장기 시크릿이 **필요 없습니다** — GitHub Actions 의 OIDC 토큰을 npm registry 가 직접 검증합니다.
 
-- `.github/workflows/ci.yml` — 모든 push / PR 에서 `typecheck + lint + build` 를 Node 18/20/22 매트릭스로 실행
-- `.github/workflows/release.yml` — 두 가지 트리거를 동시에 지원합니다.
-  - **`main` 브랜치에 push** 될 때마다 워크플로가 실행되고, `package.json` 버전이 npm 레지스트리의 최신 버전과 **다를 때만** 자동으로 publish 합니다. publish 가 성공하면 같은 버전의 `v*.*.*` 태그와 GitHub Release 를 자동 생성합니다.
-  - 사용자가 수동으로 `v*.*.*` 태그를 push 해도 동일하게 publish 되고, 이때는 태그와 `package.json` 의 버전 일치 여부를 함께 검증합니다.
+- `.github/workflows/ci.yml` — 모든 push / PR 에서 `typecheck + lint + build` 를 Node 18/20/22 매트릭스로 실행.
+- `.github/workflows/release.yml` — **`main` 브랜치 push 가 단일 공식 릴리스 경로**입니다. `package.json` 버전이 npm 레지스트리의 현재 버전과 다를 때만 publish 하고, publish 에 성공하면 같은 버전의 `v*.*.*` 태그와 GitHub Release 를 자동 생성합니다. 버전이 같으면 아무 것도 하지 않으므로, 일반 코드 커밋은 그냥 통과합니다.
 
 ### 최초 1회만 수동 (bootstrap)
 
@@ -208,12 +206,12 @@ npm publish --access public
 #    - Workflow: release.yml
 ```
 
-### 그 다음부터 릴리스하는 두 가지 방법
+### 이후 릴리스 (정식 경로)
 
-**방법 A — `main` 에 push 하면 자동 배포 (권장):**
+버전만 올리고 `main` 에 push 하면 끝입니다. 워크플로가 버전 일치 여부를 먼저 판단하므로, 태그 생성은 **직접 하지 마세요** — 수동 태그 push 는 같은 버전을 두 번 publish 하려다 npm 에서 403 으로 거절당하는 충돌을 유발할 수 있습니다.
 
 ```bash
-# 1. 버전만 올리고 커밋
+# 1. 버전만 올리고 커밋 (태그 생성 금지)
 npm version patch --no-git-tag-version     # 또는 minor / major
 git add package.json package-lock.json
 git commit -m "chore(release): bump version"
@@ -229,14 +227,7 @@ git push origin main
 4. `v<new-version>` 태그 자동 생성 · push
 5. GitHub Release 를 release notes 와 함께 자동 생성
 
-**방법 B — `v*.*.*` 태그를 직접 push:**
-
-```bash
-npm version patch              # git tag 까지 함께 생성됨
-git push && git push --tags
-```
-
-이 경우 태그와 `package.json` 버전이 일치하는지 검증한 뒤 동일하게 publish 합니다.
+같은 워크플로는 `v*.*.*` 태그 push 와 `workflow_dispatch` 로도 트리거할 수 있지만(응급 복구용), **권장 경로는 위의 `main` push 단일 흐름**입니다. 두 경로 모두 publish 직전에 "이미 게시된 버전이면 건너뛰기" 가드를 통과하므로 같은 버전을 두 번 publish 할 수 없습니다.
 
 ---
 
