@@ -41,17 +41,16 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 ---
 
-### 0단계 — 사전 정보 수집
+### 0단계 — 사전 준비 확인
 
-아래 질문을 **하나씩** 물어보고, 답을 기억해두세요. 3단계 에서 CLI 플래그 선택에 사용됩니다.
+아래 **두 가지**만 사용자에게 확인하세요. 이 단계에서는 민감 정보(계좌번호, 상품코드, HTS ID, APP_KEY / APP_SECRET 등)를 **어떤 것도 채팅으로 묻지 않습니다**. 그것들은 3단계의 `kis auth login` 프롬프트에서만 입력되어야 합니다.
 
 1. **한국투자증권 APP_KEY / APP_SECRET 이 이미 있나요?**
-   - 없으면 [https://apiportal.koreainvestment.com/](https://apiportal.koreainvestment.com/) 에서 **모의투자용** 과 **실전투자용** 두 쌍을 각각 발급받아오라고 안내하세요. "yes" 답변 전까지는 다음 단계로 넘어가지 마세요.
-2. **먼저 어느 프로파일을 설정할까요?** 보통 `paper`(모의투자) 를 먼저 권장합니다.
-3. **종합계좌번호(앞 8자리) 를 알려주세요.** 정확히 8자리 숫자여야 합니다. 2자리 상품코드(예: `01` = 종합계좌) 도 따로 물어보세요.
-4. **HTS ID 가 있나요?** 선택사항이며, WebSocket 조건검색 기능에 필요합니다. 비워도 괜찮습니다.
+   - 없다고 하면 [https://apiportal.koreainvestment.com/](https://apiportal.koreainvestment.com/) 에서 발급받아오라고 안내하세요. `paper`(모의투자)용과 `prod`(실전투자)용은 서로 다른 키이므로 필요한 쪽을 발급받으면 됩니다.
+   - "있다" 또는 "발급 완료" 답을 받기 전까지는 다음 단계로 넘어가지 마세요.
+2. **먼저 어느 프로파일을 설정할까요?** 보통 `paper`(모의투자)를 먼저 권장합니다.
 
-이 값들은 기억해두되, **APP_KEY / APP_SECRET 은 채팅창에 절대 다시 노출하지 마세요.** `kis auth login` 이 hidden input 으로 직접 받습니다.
+> 🚨 **에이전트 금지 사항**: 계좌번호(CANO) 8자리, 계좌상품코드(예: `01`), HTS ID 는 이 단계에서 **절대 묻지 마세요.** 3단계의 `kis auth login` 프롬프트가 사용자의 로컬 터미널에서 직접 받아 저장합니다. APP_KEY / APP_SECRET 도 마찬가지로 채팅창에서 받지 마세요.
 
 ---
 
