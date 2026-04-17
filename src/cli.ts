@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { Command } from "commander";
 import { registerAuthCommands } from "./commands/auth.js";
 import { registerBalanceCommands } from "./commands/balance.js";
@@ -9,6 +10,9 @@ import { registerQuoteCommands } from "./commands/quote.js";
 import { KisApiError, KisAuthError } from "./kis/errors.js";
 import { log } from "./util/logger.js";
 
+const require = createRequire(import.meta.url);
+const pkg = require("../package.json") as { version: string };
+
 const program = new Command();
 
 program
@@ -16,7 +20,7 @@ program
   .description(
     "Agent-friendly CLI for the Korea Investment & Securities open-trading API.",
   )
-  .version("0.1.0");
+  .version(pkg.version);
 
 registerInitCommand(program);
 registerAuthCommands(program);
