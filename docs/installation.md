@@ -128,8 +128,11 @@ kis init
 대신 실행할 수 없고, APP_KEY / APP_SECRET 같은 민감 정보는 제가 절대 보지 않도록
 CLI 가 숨김(hidden) 프롬프트로 직접 받습니다.
 
+한국투자증권은 보통 '계좌 1개당 APP_KEY/APP_SECRET 1쌍' 을 발급합니다.
+계좌가 여러 개면 각각 별도 프로파일로 등록해주세요. 아래 예시를 참고하세요.
+
 ────────────────────────────────────────
-1. 모의투자 프로파일 등록 (권장: 먼저 이것부터)
+A. 먼저 등록할 계좌 1개 (권장: 모의투자부터)
 
    kis auth login --paper --make-default
 
@@ -143,13 +146,35 @@ CLI 가 숨김(hidden) 프롬프트로 직접 받습니다.
    성공하면 "✓ Profile \"paper\" saved (env=paper). Config: ~/.kis-cli/config.yaml"
    메시지가 뜹니다.
 
-2. (선택) 실전투자도 함께 등록하고 싶다면
+B. 계좌가 여러 개면 --name 으로 서로 다른 프로파일 이름을 붙여주세요.
+   이름은 본인이 알아보기 쉬운 것이면 됩니다. 권장 규칙: "{용도}-{환경}".
 
-   kis auth login --prod --name prod
+   # 실전 주계좌
+   kis auth login --prod --name main-prod
 
-   APP_KEY / APP_SECRET 은 실전 키 쌍으로 입력해주세요.
+   # 실전 ISA 계좌 (별도 APP_KEY 쌍)
+   kis auth login --prod --name isa-prod
 
-3. 등록이 끝나면 저한테 "완료" 또는 "done" 이라고 알려주세요.
+   # 실전 퇴직연금 계좌 (상품코드 29)
+   kis auth login --prod --name pension-prod
+
+   프로파일마다 CLI 가 APP_KEY / APP_SECRET / 계좌번호를 처음부터 다시 묻습니다.
+   각 계좌에서 발급받은 쌍을 그 계좌의 번호와 함께 입력하세요. 이미 등록된
+   이름을 --name 에 다시 주면 기존 프로파일을 덮어씁니다.
+
+C. 등록 결과 확인
+
+   kis auth list
+
+   출력 예:
+     * paper         env=paper  account=50123456-01
+       main-prod     env=prod   account=50000001-01
+       isa-prod      env=prod   account=50000002-01
+       pension-prod  env=prod   account=50000003-29
+   (맨 앞 * 가 default 프로파일입니다. default 를 바꾸려면 원하는 프로파일로
+    kis auth login --prod --name <name> --make-default 를 한 번 더 실행하면 됩니다.)
+
+D. 등록이 끝나면 저한테 "완료" 또는 "done" 이라고 알려주세요.
 ────────────────────────────────────────
 ```
 

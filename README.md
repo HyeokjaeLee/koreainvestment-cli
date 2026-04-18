@@ -149,6 +149,31 @@ kis auth list
 
 명령마다 `--profile prod` / `--profile paper` 로 전환합니다.
 
+### 계좌가 여러 개라면
+
+한국투자증권은 일반적으로 **계좌 1개당 APP_KEY / APP_SECRET 을 1쌍씩** 발급합니다. 주계좌 · ISA · 퇴직연금 등 여러 계좌를 CLI 에서 함께 쓰고 싶다면 **계좌마다 별도 프로파일**을 만들어 두면 됩니다. 프로파일 이름은 본인이 알아보기 쉬운 것이면 되고, 권장 규칙은 `{용도}-{환경}` 입니다.
+
+```bash
+# 주계좌 (실전)
+kis auth login --prod --name main-prod
+
+# ISA 계좌 (실전, 별도 APP_KEY 쌍)
+kis auth login --prod --name isa-prod
+
+# 퇴직연금 계좌 (실전, 상품코드 29)
+kis auth login --prod --name pension-prod
+
+kis auth list
+#   * paper         env=paper  account=50123456-01
+#     main-prod     env=prod   account=50000001-01
+#     isa-prod      env=prod   account=50000002-01
+#     pension-prod  env=prod   account=50000003-29
+```
+
+각 계좌의 APP_KEY / APP_SECRET / 계좌번호는 `kis auth login` 프롬프트에서 해당 계좌 것을 그대로 입력하면 됩니다. 이후 명령에는 `--profile main-prod` / `--profile isa-prod` 처럼 원하는 프로파일을 지정하세요. default 프로파일(맨 앞 `*`)을 바꾸려면 같은 `--name` 에 대해 `--make-default` 를 한 번 더 실행하면 됩니다.
+
+에이전트를 쓰고 있다면, 실전 프로파일이 여러 개 등록된 상태에서 "실전으로 매수해줘" 같은 모호한 요청이 오면 에이전트가 먼저 `kis auth list` 로 후보를 보여주고 **어느 계좌로 처리할지 사용자에게 확인**합니다(자세한 규칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "패턴 0 — 프로파일 해석" 참고).
+
 ---
 
 ## 안전 유의사항
