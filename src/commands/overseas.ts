@@ -37,15 +37,15 @@ function shortExch(code: string): string {
 export function registerOverseasCommands(root: Command): void {
   const os = root
     .command("overseas")
-    .description("Overseas stock commands (US / HK / JP / CN / VN)");
+    .description("해외주식 명령 모음 (미국 / 홍콩 / 일본 / 중국 / 베트남)");
 
   os
     .command("price")
-    .description("해외주식 현재가 (HHDFS00000300)")
-    .requiredOption("--exch <code>", `Exchange: ${EXCHANGES.join(",")}`)
-    .requiredOption("--symbol <code>", "Ticker, e.g. AAPL, TSLA, 0700")
-    .option("--profile <name>")
-    .option("--json")
+    .description("해외주식 현재가 조회 (HHDFS00000300)")
+    .requiredOption("--exch <code>", `거래소 코드: ${EXCHANGES.join(", ")}`)
+    .requiredOption("--symbol <code>", "종목코드 (예: AAPL, TSLA, 0700)")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);
@@ -69,11 +69,11 @@ export function registerOverseasCommands(root: Command): void {
 
   os
     .command("balance")
-    .description("해외주식 잔고 (TTTS3012R / VTTS3012R)")
-    .requiredOption("--exch <code>", `Exchange: ${EXCHANGES.join(",")}`)
-    .option("--currency <ccy>", "USD | HKD | CNY | JPY | VND", "USD")
-    .option("--profile <name>")
-    .option("--json")
+    .description("해외주식 잔고 조회 (TTTS3012R / VTTS3012R)")
+    .requiredOption("--exch <code>", `거래소 코드: ${EXCHANGES.join(", ")}`)
+    .option("--currency <ccy>", "통화 코드: USD | HKD | CNY | JPY | VND", "USD")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);
@@ -109,30 +109,40 @@ export function registerOverseasCommands(root: Command): void {
 
   os
     .command("buy")
-    .description("해외주식 매수")
-    .requiredOption("--exch <code>", "NASD/NYSE/AMEX/SEHK/TKSE/SHAA/SZAA")
-    .requiredOption("--symbol <code>")
-    .requiredOption("--qty <n>")
-    .requiredOption("--price <unit>")
-    .option("--division <code>", "00=지정가, 31=MOO, 32=LOO, 33=MOC, 34=LOC", "00")
-    .option("--profile <name>")
-    .option("-y, --yes", "Skip confirmation", false)
-    .option("--json")
+    .description("해외주식 매수 주문")
+    .requiredOption(
+      "--exch <code>",
+      "거래소 코드: NASD/NYSE/AMEX/SEHK/TKSE/SHAA/SZAA",
+    )
+    .requiredOption("--symbol <code>", "종목코드 (예: AAPL, 0700)")
+    .requiredOption("--qty <n>", "주문 수량")
+    .requiredOption("--price <unit>", "주문 단가 (해당 거래소 통화 기준)")
+    .option(
+      "--division <code>",
+      "주문 구분: 00=지정가, 31=MOO, 32=LOO, 33=MOC, 34=LOC",
+      "00",
+    )
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("-y, --yes", "확인 프롬프트 건너뛰기", false)
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       await placeOverseasOrder("buy", opts);
     });
 
   os
     .command("sell")
-    .description("해외주식 매도")
-    .requiredOption("--exch <code>")
-    .requiredOption("--symbol <code>")
-    .requiredOption("--qty <n>")
-    .requiredOption("--price <unit>")
-    .option("--division <code>", "00=지정가", "00")
-    .option("--profile <name>")
-    .option("-y, --yes", "Skip confirmation", false)
-    .option("--json")
+    .description("해외주식 매도 주문")
+    .requiredOption(
+      "--exch <code>",
+      "거래소 코드: NASD/NYSE/AMEX/SEHK/TKSE/SHAA/SZAA",
+    )
+    .requiredOption("--symbol <code>", "종목코드 (예: AAPL, 0700)")
+    .requiredOption("--qty <n>", "주문 수량")
+    .requiredOption("--price <unit>", "주문 단가 (해당 거래소 통화 기준)")
+    .option("--division <code>", "주문 구분: 00=지정가", "00")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("-y, --yes", "확인 프롬프트 건너뛰기", false)
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       await placeOverseasOrder("sell", opts);
     });
@@ -161,17 +171,17 @@ async function placeOverseasOrder(
   });
   const trId = (side === "buy" ? BUY_TR_BY_EXCH : SELL_TR_BY_EXCH)[opts.exch];
   if (!trId) {
-    log.error(`Unsupported exchange: ${opts.exch}`);
+    log.error(`지원하지 않는 거래소 코드입니다: ${opts.exch}`);
     process.exit(1);
   }
 
   log.heading(
-    `해외 주문 확인 (${profile.env}) / ${side.toUpperCase()} ${opts.qty}주 ${opts.exch}:${opts.symbol} @ ${opts.price}`,
+    `해외 주문 확인 (${profile.env}) / ${side === "buy" ? "매수" : "매도"} ${opts.qty}주 ${opts.exch}:${opts.symbol} @ ${opts.price}`,
   );
   if (!opts.yes) {
     const ok = await confirm("이대로 주문을 전송할까요?", false);
     if (!ok) {
-      log.warn("Cancelled.");
+      log.warn("주문을 취소했습니다.");
       return;
     }
   }

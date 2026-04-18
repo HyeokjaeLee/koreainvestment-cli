@@ -25,27 +25,32 @@ export async function promptCredentials(options: {
         name: "appKey",
         message: "APP_KEY (앱키)",
         initial: options.existing?.appKey,
-        validate: (v: string) => v.length > 10 || "APP_KEY looks too short",
+        validate: (v: string) =>
+          v.length > 10 || "APP_KEY 가 너무 짧습니다.",
       },
       {
         type: "password",
         name: "appSecret",
         message: "APP_SECRET (앱시크릿)",
-        validate: (v: string) => v.length > 10 || "APP_SECRET looks too short",
+        validate: (v: string) =>
+          v.length > 10 || "APP_SECRET 이 너무 짧습니다.",
       },
       {
         type: "text",
         name: "accountNumber",
         message: "계좌번호 앞 8자리 (CANO)",
         initial: options.existing?.accountNumber,
-        validate: (v: string) => /^\d{8}$/u.test(v) || "8 digits required",
+        validate: (v: string) =>
+          /^\d{8}$/u.test(v) || "숫자 8자리를 정확히 입력하세요.",
       },
       {
         type: "text",
         name: "accountProductCode",
-        message: "계좌상품코드 (01=종합, 03=선물옵션, 22=개인연금, 29=퇴직연금)",
+        message:
+          "계좌상품코드 (01=종합, 03=선물옵션, 22=개인연금, 29=퇴직연금)",
         initial: options.existing?.accountProductCode ?? "01",
-        validate: (v: string) => /^\d{2}$/u.test(v) || "2 digits required",
+        validate: (v: string) =>
+          /^\d{2}$/u.test(v) || "숫자 2자리를 입력하세요.",
       },
       {
         type: "text",
@@ -56,7 +61,7 @@ export async function promptCredentials(options: {
     ],
     {
       onCancel: () => {
-        console.error("Aborted.");
+        console.error("입력을 취소했습니다.");
         process.exit(1);
       },
     },

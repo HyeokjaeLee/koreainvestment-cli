@@ -33,12 +33,14 @@ export async function issueAccessToken(profile: Profile): Promise<CachedToken> {
   const text = await body.text();
   if (statusCode !== 200) {
     throw new KisAuthError(
-      `Token issuance failed (HTTP ${statusCode}): ${text}`,
+      `접근 토큰 발급 실패 (HTTP ${statusCode}): ${text}`,
     );
   }
   const data = JSON.parse(text) as TokenResponse;
   if (!data.access_token) {
-    throw new KisAuthError(`Token issuance returned no access_token: ${text}`);
+    throw new KisAuthError(
+      `접근 토큰 발급 응답에 access_token 이 없습니다: ${text}`,
+    );
   }
   const expiresAt =
     data.access_token_token_expired ??
@@ -64,12 +66,14 @@ export async function issueApprovalKey(profile: Profile): Promise<string> {
   const text = await body.text();
   if (statusCode !== 200) {
     throw new KisAuthError(
-      `Approval key issuance failed (HTTP ${statusCode}): ${text}`,
+      `approval_key 발급 실패 (HTTP ${statusCode}): ${text}`,
     );
   }
   const data = JSON.parse(text) as ApprovalResponse;
   if (!data.approval_key) {
-    throw new KisAuthError(`Approval key missing in response: ${text}`);
+    throw new KisAuthError(
+      `응답에 approval_key 가 없습니다: ${text}`,
+    );
   }
   return data.approval_key;
 }
@@ -100,7 +104,7 @@ export function isTokenFresh(
 }
 
 function normalizeExpiry(raw: string): string {
-  // KIS returns "YYYY-MM-DD HH:mm:ss" (KST).  Treat as KST (+09:00).
+  // KIS 응답은 "YYYY-MM-DD HH:mm:ss" (KST) 형태이므로 +09:00 으로 해석한다.
   if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/u.test(raw)) {
     const iso = raw.replace(" ", "T") + "+09:00";
     const d = new Date(iso);

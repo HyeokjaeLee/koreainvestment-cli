@@ -10,15 +10,17 @@ function marketDiv(flag: string | undefined): string {
 }
 
 export function registerQuoteCommands(root: Command): void {
-  const quote = root.command("quote").description("Market data queries");
+  const quote = root
+    .command("quote")
+    .description("국내 주식 시세 조회 명령 모음");
 
   quote
     .command("price")
-    .description("주식현재가 시세 (FHKST01010100)")
-    .argument("<symbol>", "Ticker code, e.g. 005930")
-    .option("--market <code>", "J=KRX, NX=NXT, UN=통합", "J")
-    .option("--profile <name>")
-    .option("--json", "Output raw JSON")
+    .description("주식현재가 시세 조회 (FHKST01010100)")
+    .argument("<symbol>", "종목코드 (예: 005930)")
+    .option("--market <code>", "시장 구분: J=KRX, NX=NXT, UN=통합", "J")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (symbol: string, opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);
@@ -44,11 +46,11 @@ export function registerQuoteCommands(root: Command): void {
 
   quote
     .command("orderbook")
-    .description("주식현재가 호가/예상체결 (FHKST01010200)")
-    .argument("<symbol>")
-    .option("--market <code>", "J=KRX, NX=NXT, UN=통합", "J")
-    .option("--profile <name>")
-    .option("--json")
+    .description("주식현재가 호가/예상체결 조회 (FHKST01010200)")
+    .argument("<symbol>", "종목코드 (예: 005930)")
+    .option("--market <code>", "시장 구분: J=KRX, NX=NXT, UN=통합", "J")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (symbol: string, opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);
@@ -77,17 +79,17 @@ export function registerQuoteCommands(root: Command): void {
 
   quote
     .command("daily")
-    .description("일봉/주봉/월봉/년봉 차트 (FHKST03010100)")
-    .argument("<symbol>")
-    .option("--from <yyyymmdd>", "Start date (required)")
-    .option("--to <yyyymmdd>", "End date (required)")
-    .option("--period <code>", "D/W/M/Y", "D")
-    .option("--adjusted", "Adjusted price (0 = adjusted)", true)
-    .option("--profile <name>")
-    .option("--json")
+    .description("일봉/주봉/월봉/년봉 차트 조회 (FHKST03010100)")
+    .argument("<symbol>", "종목코드 (예: 005930)")
+    .option("--from <yyyymmdd>", "조회 시작일 (필수, YYYYMMDD)")
+    .option("--to <yyyymmdd>", "조회 종료일 (필수, YYYYMMDD)")
+    .option("--period <code>", "주기 구분: D=일봉, W=주봉, M=월봉, Y=년봉", "D")
+    .option("--adjusted", "수정주가 적용 (0=수정주가)", true)
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (symbol: string, opts) => {
       if (!opts.from || !opts.to) {
-        console.error("--from and --to (YYYYMMDD) are required.");
+        console.error("--from 과 --to (YYYYMMDD) 는 필수입니다.");
         process.exit(1);
       }
       const config = await loadConfig();
@@ -133,11 +135,11 @@ export function registerQuoteCommands(root: Command): void {
 
   quote
     .command("minute")
-    .description("당일 분봉 (FHKST03010200)")
-    .argument("<symbol>")
-    .option("--time <hhmmss>", "Base time, default now")
-    .option("--profile <name>")
-    .option("--json")
+    .description("당일 분봉 조회 (FHKST03010200)")
+    .argument("<symbol>", "종목코드 (예: 005930)")
+    .option("--time <hhmmss>", "기준 시각 (생략 시 현재 시각)")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (symbol: string, opts) => {
       const now = new Date();
       const hhmmss =

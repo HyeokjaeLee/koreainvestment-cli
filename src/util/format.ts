@@ -13,14 +13,14 @@ export function printRecord(
   options: JsonOptions = {},
 ): void {
   if (!record) {
-    console.log("(empty)");
+    console.log("(응답 없음)");
     return;
   }
   if (options.json) {
     outputJson(record);
     return;
   }
-  const table = new Table({ head: ["Field", "Value"] });
+  const table = new Table({ head: ["항목", "값"] });
   for (const [key, value] of Object.entries(record)) {
     table.push([key, formatCell(value)]);
   }
@@ -36,7 +36,7 @@ export function printTable(
     return;
   }
   if (rows.length === 0) {
-    console.log("(no rows)");
+    console.log("(결과 없음)");
     return;
   }
   const columns = options.columns ?? Object.keys(rows[0] ?? {});

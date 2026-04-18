@@ -6,13 +6,13 @@ import { outputJson, printRecord, printTable } from "../util/format.js";
 export function registerBalanceCommands(root: Command): void {
   const balance = root
     .command("balance")
-    .description("Balance & account inquiry");
+    .description("국내 잔고 및 계좌 자산 조회 명령 모음");
 
   balance
     .command("stock")
     .description("주식잔고조회 (TTTC8434R / VTTC8434R)")
-    .option("--profile <name>")
-    .option("--json")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);
@@ -81,8 +81,8 @@ export function registerBalanceCommands(root: Command): void {
   balance
     .command("account")
     .description("투자계좌자산현황조회 (CTRP6548R)")
-    .option("--profile <name>")
-    .option("--json")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);
@@ -117,11 +117,11 @@ export function registerBalanceCommands(root: Command): void {
   balance
     .command("orderable")
     .description("매수가능조회 (TTTC8908R)")
-    .requiredOption("--symbol <code>", "Ticker code, e.g. 005930")
-    .option("--price <krw>", "Limit price (0 = market)", "0")
-    .option("--division <code>", "00=지정가, 01=시장가", "00")
-    .option("--profile <name>")
-    .option("--json")
+    .requiredOption("--symbol <code>", "종목코드 (예: 005930)")
+    .option("--price <krw>", "지정가 (0 이면 시장가)", "0")
+    .option("--division <code>", "주문 구분: 00=지정가, 01=시장가", "00")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);

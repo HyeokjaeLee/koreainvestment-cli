@@ -72,14 +72,14 @@ export class KisClient {
 
     if (statusCode < 200 || statusCode >= 300) {
       throw new KisApiError(
-        `KIS API HTTP ${statusCode} for ${options.path}`,
+        `${options.path} 호출 실패 (HTTP ${statusCode})`,
         { status: statusCode, trId, body: safeJson(text) },
       );
     }
 
     const parsed = safeJson(text) as KisBaseResponse<T> | undefined;
     if (!parsed) {
-      throw new KisApiError("Failed to parse KIS response", {
+      throw new KisApiError("KIS 응답을 JSON 으로 파싱하지 못했습니다", {
         status: statusCode,
         trId,
         body: text,
@@ -88,7 +88,7 @@ export class KisClient {
 
     if (parsed.rt_cd && parsed.rt_cd !== "0") {
       throw new KisApiError(
-        `${parsed.msg_cd ?? "KIS_ERR"}: ${parsed.msg1 ?? "Unknown error"}`,
+        `${parsed.msg_cd ?? "KIS_ERR"}: ${parsed.msg1 ?? "알 수 없는 오류"}`,
         {
           status: statusCode,
           code: parsed.msg_cd,

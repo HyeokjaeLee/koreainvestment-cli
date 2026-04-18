@@ -21,12 +21,12 @@ async function placeOrder(side: Side, opts: OrderOpts): Promise<void> {
   const symbol = opts.symbol;
 
   log.heading(
-    `주문 확인 (${profile.env}) / ${side.toUpperCase()} ${qty}주 ${symbol} @ ${price} [div=${division}]`,
+    `주문 확인 (${profile.env}) / ${side === "buy" ? "매수" : "매도"} ${qty}주 ${symbol} @ ${price} [구분=${division}]`,
   );
   if (!opts.yes) {
     const ok = await confirm("이대로 주문을 전송할까요?", false);
     if (!ok) {
-      log.warn("Cancelled.");
+      log.warn("주문을 취소했습니다.");
       return;
     }
   }
@@ -53,7 +53,7 @@ async function placeOrder(side: Side, opts: OrderOpts): Promise<void> {
     outputJson(res);
     return;
   }
-  log.success("Order accepted.");
+  log.success("주문이 접수되었습니다.");
   printRecord(res.output as Record<string, unknown> | undefined);
 }
 
@@ -71,50 +71,52 @@ interface OrderOpts {
 }
 
 export function registerOrderCommands(root: Command): void {
-  const order = root.command("order").description("Place / manage orders");
+  const order = root
+    .command("order")
+    .description("국내 주문 명령 모음 (매수 / 매도 / 정정 / 취소)");
 
   const buildShared = (cmd: Command) =>
     cmd
-      .requiredOption("--symbol <code>", "Ticker code, e.g. 005930")
-      .requiredOption("--qty <n>", "Quantity (shares)")
-      .option("--price <krw>", "Limit price (0 for market)", "0")
+      .requiredOption("--symbol <code>", "종목코드 (예: 005930)")
+      .requiredOption("--qty <n>", "주문 수량 (주)")
+      .option("--price <krw>", "지정가 (0 이면 시장가)", "0")
       .option(
         "--division <code>",
-        "ORD_DVSN: 00=지정가, 01=시장가, 02=조건부지정가, ...",
+        "ORD_DVSN 주문 구분: 00=지정가, 01=시장가, 02=조건부지정가 등",
         "00",
       )
-      .option("--exchange <code>", "EXCG_ID_DVSN_CD: KRX, NXT, SOR", "KRX")
+      .option("--exchange <code>", "EXCG_ID_DVSN_CD 거래소: KRX, NXT, SOR", "KRX")
       .option(
         "--sell-type <code>",
-        "SLL_TYPE (sell only): 01=일반매도, 02=임의매매, 05=대차매도",
+        "SLL_TYPE 매도 전용: 01=일반매도, 02=임의매매, 05=대차매도",
       )
       .option(
         "--condition-price <krw>",
-        "CNDT_PRIC: 스탑지정가호가 조건가격 (optional)",
+        "CNDT_PRIC 스탑지정가호가 조건가격 (선택)",
       )
-      .option("--profile <name>")
-      .option("-y, --yes", "Skip confirmation", false)
-      .option("--json", "Output raw JSON", false);
+      .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+      .option("-y, --yes", "확인 프롬프트 건너뛰기", false)
+      .option("--json", "응답을 원본 JSON 으로 출력", false);
 
-  buildShared(order.command("buy").description("Cash buy order"))
+  buildShared(order.command("buy").description("현금 매수 주문"))
     .action(async (opts: OrderOpts) => placeOrder("buy", opts));
 
-  buildShared(order.command("sell").description("Cash sell order"))
+  buildShared(order.command("sell").description("현금 매도 주문"))
     .action(async (opts: OrderOpts) => placeOrder("sell", opts));
 
   order
     .command("modify")
-    .description("주식주문(정정) - TTTC0013U / VTTC0013U")
-    .requiredOption("--org-order-no <no>", "Original ODNO")
-    .requiredOption("--order-branch <no>", "KRX_FWDG_ORD_ORGNO")
-    .requiredOption("--qty <n>", "New qty (or 0 with --all)")
-    .option("--price <krw>", "New limit price", "0")
-    .option("--division <code>", "ORD_DVSN", "00")
-    .option("--all", "Modify full remaining qty (QTY_ALL_ORD_YN=Y)", false)
-    .option("--exchange <code>", "EXCG_ID_DVSN_CD: KRX, NXT, SOR", "KRX")
-    .option("--profile <name>")
-    .option("-y, --yes", "Skip confirmation", false)
-    .option("--json")
+    .description("주식주문(정정) — TTTC0013U / VTTC0013U")
+    .requiredOption("--org-order-no <no>", "원주문 ODNO")
+    .requiredOption("--order-branch <no>", "KRX_FWDG_ORD_ORGNO 주문조직번호")
+    .requiredOption("--qty <n>", "정정 수량 (--all 사용 시 0)")
+    .option("--price <krw>", "정정 지정가", "0")
+    .option("--division <code>", "ORD_DVSN 주문 구분", "00")
+    .option("--all", "잔량 전량 정정 (QTY_ALL_ORD_YN=Y)", false)
+    .option("--exchange <code>", "EXCG_ID_DVSN_CD 거래소: KRX, NXT, SOR", "KRX")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("-y, --yes", "확인 프롬프트 건너뛰기", false)
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);
@@ -152,15 +154,15 @@ export function registerOrderCommands(root: Command): void {
 
   order
     .command("cancel")
-    .description("주식주문(취소) - TTTC0013U with RVSE_CNCL_DVSN_CD=02")
-    .requiredOption("--org-order-no <no>")
-    .requiredOption("--order-branch <no>")
-    .option("--qty <n>", "Partial cancel qty (ignored with --all)", "0")
-    .option("--all", "Cancel full remaining qty", true)
-    .option("--exchange <code>", "EXCG_ID_DVSN_CD: KRX, NXT, SOR", "KRX")
-    .option("--profile <name>")
-    .option("-y, --yes", "Skip confirmation", false)
-    .option("--json")
+    .description("주식주문(취소) — TTTC0013U (RVSE_CNCL_DVSN_CD=02)")
+    .requiredOption("--org-order-no <no>", "원주문 ODNO")
+    .requiredOption("--order-branch <no>", "KRX_FWDG_ORD_ORGNO 주문조직번호")
+    .option("--qty <n>", "부분취소 수량 (--all 지정 시 무시됨)", "0")
+    .option("--all", "잔량 전량 취소", true)
+    .option("--exchange <code>", "EXCG_ID_DVSN_CD 거래소: KRX, NXT, SOR", "KRX")
+    .option("--profile <name>", "프로파일 이름 (생략 시 기본 프로파일)")
+    .option("-y, --yes", "확인 프롬프트 건너뛰기", false)
+    .option("--json", "응답을 원본 JSON 으로 출력")
     .action(async (opts) => {
       const config = await loadConfig();
       const profile = getProfile(config, opts.profile);

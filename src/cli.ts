@@ -18,7 +18,7 @@ const program = new Command();
 program
   .name("kis")
   .description(
-    "Agent-friendly CLI for the Korea Investment & Securities open-trading API.",
+    "한국투자증권 open-trading-api 를 위한 에이전트 친화 CLI 입니다.",
   )
   .version(pkg.version);
 
@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   } catch (err) {
     if (err instanceof KisApiError) {
       log.error(
-        `KIS API error: ${err.message} [status=${err.status}${err.trId ? `, tr_id=${err.trId}` : ""}${err.code ? `, code=${err.code}` : ""}]`,
+        `KIS API 오류: ${err.message} [status=${err.status}${err.trId ? `, tr_id=${err.trId}` : ""}${err.code ? `, code=${err.code}` : ""}]`,
       );
       if (process.env.KIS_DEBUG) console.error(err.body);
       process.exit(2);
