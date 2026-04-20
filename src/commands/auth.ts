@@ -51,15 +51,8 @@ export function registerAuthCommands(root: Command): void {
   const auth = root
     .command("auth")
     .description(
-      "한국투자증권 API 인증 정보를 관리합니다 (기본 동작: 대화형 로그인)",
-    )
-    .option("--paper", "모의투자 프로파일로 저장", false)
-    .option("--prod", "실전투자 프로파일로 저장", false)
-    .option("--name <name>", "프로파일 이름 (기본: prod 또는 paper)")
-    .option("--make-default", "이 프로파일을 기본 프로파일로 설정", false)
-    .action(async (opts: LoginOpts) => {
-      await runLogin(opts);
-    });
+      "한국투자증권 API 인증 정보를 관리합니다 (로그인은 `kis auth login`)",
+    );
 
   auth
     .command("login")
@@ -69,6 +62,12 @@ export function registerAuthCommands(root: Command): void {
     .option("--name <name>", "프로파일 이름 (기본: prod 또는 paper)")
     .option("--make-default", "이 프로파일을 기본 프로파일로 설정", false)
     .action(async (opts: LoginOpts) => {
+      if (opts.paper && opts.prod) {
+        log.error(
+          "--paper 와 --prod 는 동시에 지정할 수 없습니다. 하나만 선택하세요.",
+        );
+        process.exit(1);
+      }
       await runLogin(opts);
     });
 
