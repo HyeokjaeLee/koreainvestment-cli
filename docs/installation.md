@@ -433,8 +433,9 @@ CLI 가 숨김(hidden) 프롬프트로 직접 받습니다.
 명령을 실행하면 CLI 가 순서대로 다음을 물어봅니다:
 - clientId     (숨김 입력: 화면에 안 보입니다)
 - clientSecret (숨김 입력: 화면에 안 보입니다)
-- accountSeq   (선택, 비워도 됨 — 나중에 `toss account list` 로 확인 후
-                `--account-seq` 로 지정 가능)
+
+accountSeq 는 login 에서 묻지 않습니다. login 후 `toss account list` 로
+확인한 뒤, 계좌 연동 명령에 `--account-seq <숫자>` 로 지정합니다.
 
 성공하면 '✓ 토스 프로파일 "default" 저장 완료' 메시지가 뜹니다.
 프로파일 이름을 바꾸려면 `toss auth login --name <이름>` 을 사용하세요.

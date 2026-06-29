@@ -96,12 +96,9 @@ export async function confirm(
 	return Boolean(res.ok);
 }
 
-export async function promptTossCredentials(options: {
-	existing?: { accountSeq?: string };
-}): Promise<{
+export async function promptTossCredentials(): Promise<{
 	clientId: string;
 	clientSecret: string;
-	accountSeq?: string;
 }> {
 	console.log(
 		"\n[ \ud1a0\uc2a4\uc99d\uad8c Open API \uc778\uc99d \uc815\ubcf4 \uc785\ub825 ]\n",
@@ -125,16 +122,6 @@ export async function promptTossCredentials(options: {
 					v.length >= 10 ||
 					"Client Secret \uc774 \ub108\ubb34 \uc9e7\uc2b5\ub2c8\ub2e4.",
 			},
-			{
-				type: "text",
-				name: "accountSeq",
-				message:
-					"Account Seq (\uc120\ud0dd, \uc8fc\ubb38/\uc7a0\uace0 API \uc6a9)",
-				initial: options.existing?.accountSeq ?? "",
-				validate: (v: string) =>
-					/^\d*$/u.test(v) ||
-					"\uc22b\uc790\ub9cc \uc785\ub825 \uac00\ub2a5\ud569\ub2c8\ub2e4.",
-			},
 		],
 		{
 			onCancel: () => {
@@ -149,6 +136,5 @@ export async function promptTossCredentials(options: {
 	return {
 		clientId: answers.clientId,
 		clientSecret: answers.clientSecret,
-		accountSeq: answers.accountSeq ? String(answers.accountSeq) : undefined,
 	};
 }

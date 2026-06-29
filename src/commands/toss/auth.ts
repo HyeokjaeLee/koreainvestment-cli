@@ -41,7 +41,7 @@ export function registerTossAuthCommands(root: Command): void {
 	auth
 		.command("login")
 		.description(
-			"Client ID / Client Secret / accountSeq 를 대화형으로 등록합니다",
+			"Client ID / Client Secret 를 대화형으로 등록합니다",
 		)
 		.option("--name <name>", "프로파일 이름 (기본: default)")
 		.option("--make-default", "이 프로파일을 기본 프로파일로 설정", false)
@@ -51,17 +51,15 @@ export function registerTossAuthCommands(root: Command): void {
 			const config = await loadConfig();
 			const existing = config.tossProfiles[profileName];
 
-			const answers = await promptTossCredentials({
-				existing: { accountSeq: existing?.accountSeq },
-			});
+			const answers = await promptTossCredentials();
 
 			const profile = TossProfileSchema.parse({
 				clientId: answers.clientId,
 				clientSecret: answers.clientSecret,
-				accountSeq:
-					answers.accountSeq && answers.accountSeq.length > 0
-						? answers.accountSeq
-						: undefined,
+				// accountSeq 는 login 시점에 알 수 없는 값이므로 프롬프트에서 묻지 않는다.
+				// 기존 프로파일에 등록된 값이 있으면 보존한다. 신규로 설정하려면
+				// toss account list 로 확인 후 --account-seq 로 지정.
+				accountSeq: existing?.accountSeq,
 			});
 
 			await upsertTossProfile(profileName, profile, {
