@@ -40,9 +40,7 @@ export function registerTossAuthCommands(root: Command): void {
 
 	auth
 		.command("login")
-		.description(
-			"Client ID / Client Secret 를 대화형으로 등록합니다",
-		)
+		.description("Client ID / Client Secret 를 대화형으로 등록합니다")
 		.option("--name <name>", "프로파일 이름 (기본: default)")
 		.option("--make-default", "이 프로파일을 기본 프로파일로 설정", false)
 		.option("--json", "결과를 JSON 으로 출력", false)
