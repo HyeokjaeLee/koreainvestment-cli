@@ -1,12 +1,23 @@
 # koreainvestment-cli
 
-> 한국투자증권 **open-trading-api** 를 위한 에이전트 친화 TypeScript CLI.
+> 한국투자증권(KIS) · 토스증권(Toss) Open API 를 위한 에이전트 친화 TypeScript CLI.
 > 당신의 손가락이 아니라, 당신의 LLM 에이전트(Claude Code, OpenCode, Cursor 등)가 대신 쓰게 설계되었습니다.
+> 두 개의 바이너리를 함께 제공합니다: `kis` (한국투자증권) · `toss` (토스증권).
+
+### 한국투자증권 (KIS)
 
 ```bash
 npm install -g koreainvestment-cli
 kis auth login --paper
 kis quote price 005930
+```
+
+### 토스증권 (Toss)
+
+```bash
+toss auth login
+toss account list
+toss market prices --symbols 005930,AAPL
 ```
 
 이게 전부입니다. 그 다음부터는 에이전트가 알아서 합니다.
@@ -16,20 +27,24 @@ kis quote price 005930
 
 ---
 
-## 왜 또 다른 KIS 클라이언트인가?
+## 왜 이 CLI 인가?
 
-한국투자증권 공식 [open-trading-api](https://github.com/koreainvestment/open-trading-api) 저장소는 Python 샘플 코드만 제공합니다. LLM 에이전트에게 매 요청마다 Python 런타임, YAML 설정, TR_ID 테이블을 새로 이해시키는 건 낭비입니다.
+한국투자증권 공식 [open-trading-api](https://github.com/koreainvestment/open-trading-api) 저장소는 Python 샘플 코드만 제공합니다. LLM 에이전트에게 매 요청마다 Python 런타임, YAML 설정, TR_ID 테이블을 새로 이해시키는 건 낭비입니다. 토스증권 역시 마찬가지로, 공식 문서만 있고 에이전트가 바로 부를 수 있는 CLI 는 없었습니다.
 
-`koreainvestment-cli` 의 설계 철학은 다음과 같습니다.
+`koreainvestment-cli` 는 이제 두 증권사를 한 패키지에서 다룹니다. `kis` 바이너리로 한국투자증권(KIS) API 를, `toss` 바이너리로 토스증권(Toss) Open API 를 다룹니다. Toss 는 OAuth2 client-credentials 인증, 단일 엔드포인트, 국내/해외 통합 API 를 제공하며 금액 기반 주문 · 환율 · 장운영 캘린더 등 Toss 고유 기능이 추가로 지원됩니다.
+
+설계 철학은 두 증권사에 공통으로 적용됩니다.
 
 - **에이전트 친화 (agent-native)** — 모든 명령이 한 줄로 실행되고, `--json` 플래그로 구조화된 출력을 반환합니다. 에이전트가 그대로 다음 단계 입력으로 파이프할 수 있습니다.
-- **인증 정보 우선 UX** — `kis auth login` 한 번이면 APP_KEY / APP_SECRET / 계좌번호가 파일 권한 `0600` 으로 `~/.kis-cli/config.yaml` 에 저장됩니다.
-- **모의투자 · 실전투자 동시 지원** — `paper`(모의) · `prod`(실전) 프로파일을 함께 보관하고, TR_ID 가 환경에 따라 자동으로 `T → V` 로 변환됩니다.
+- **인증 정보 우선 UX** — `kis auth login` / `toss auth login` 한 번이면 인증 정보가 파일 권한 `0600` 으로 `~/.kis-cli/config.yaml` 에 저장됩니다.
+- **모의투자 · 실전투자 동시 지원 (KIS)** — `paper`(모의) · `prod`(실전) 프로파일을 함께 보관하고, TR_ID 가 환경에 따라 자동으로 `T → V` 로 변환됩니다. (Toss 는 paper/prod 구분이 없고 단일 엔드포인트를 사용합니다. 환경은 key 접두사로 인코딩됩니다.)
 - **안전한 주문** — 주문 명령은 항상 확인 프롬프트를 띄웁니다. `-y / --yes` 를 명시해야만 건너뜁니다.
 
 ---
 
 ## 설치
+
+`npm install -g koreainvestment-cli` 한 번이면 **두 바이너리(`kis`, `toss`)가 함께 설치**됩니다. 별도 패키지가 아닙니다.
 
 ### 사람이 직접 쓰는 경우
 
@@ -75,7 +90,7 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 ---
 
-## 빠른 사용 예
+## 한국투자증권 (KIS) 빠른 사용 예
 
 ```bash
 # 1. 먼저 모의투자 프로파일로 안전하게 연결
@@ -98,7 +113,68 @@ kis order buy --symbol 005930 --qty 1 --price 70000 --profile paper
 
 ---
 
-## 지원 기능 요약
+## 토스증권 (Toss) 사용하기
+
+`toss` 바이너리는 토스증권 Open API 를 다룹니다. KIS 와 별개 프로파일(`tossProfiles`)을 사용하며, 토큰 캐시도 `toss:<name>` 네임스페이스로 분리됩니다.
+
+```bash
+# 1. 토스 프로파일 등록 (clientId / clientSecret / accountSeq)
+toss auth login
+
+# 2. 토큰 발급 검증
+toss auth test
+
+# 3. 계좌 식별자(accountSeq) 확인
+toss account list
+
+# 4. 삼성전자·애플 현재가 (국내+해외 통합)
+toss market prices --symbols 005930,AAPL
+
+# 5. 보유 종목
+toss account holdings --account-seq 1
+
+# 6. 환율 / 장운영 캘린더 (Toss 고유)
+toss info exchange-rate --base-currency USD --quote-currency KRW
+toss info calendar --country KR
+```
+
+모든 명령에 `--json` 을 붙이면 구조화된 JSON 으로 응답합니다.
+
+### 토스만의 기능
+
+- **금액 기반 주문** — `toss order amount AAPL --amount-usd 100` (US MARKET 전용, 달러 금액 단위 주문)
+- **국내/해외 통합** — 단일 API 로 KRX 6자리 코드와 US 티커를 동시에 취급
+- **매수 유의사항 조회** — `toss market warnings <symbol>`
+- **환율 · 장운영 캘린더** — `toss info exchange-rate` / `toss info calendar`
+- **clientOrderId 멱등성** — `--client-order-id` 로 10분간 중복 주문 방지
+- **LOC(장마감) 주문** — `--time-in-force CLS` (US + LIMIT 조합)
+
+### 토스 지원 기능 요약
+
+| 기능 | 명령 |
+|---|---|
+| 현재가 (국내+해외 통합) | `toss market prices --symbols 005930,AAPL` |
+| 호가창 | `toss market orderbook 005930` |
+| 체결 내역 | `toss market trades 005930 --count 10` |
+| 상/하한가 | `toss market price-limits 005930` |
+| 캔들 (분/일) | `toss market candles 005930 --interval 1d --count 5` |
+| 종목 기본 정보 | `toss market stocks --symbols 005930,AAPL` |
+| 매수 유의사항 | `toss market warnings 005930` |
+| 환율 | `toss info exchange-rate --base-currency USD --quote-currency KRW` |
+| 장운영 캘린더 | `toss info calendar --country KR` (또는 `--country US`) |
+| 계좌 목록 | `toss account list` |
+| 보유 종목 | `toss account holdings --account-seq 1` |
+| 매수 가능 금액 | `toss account buying-power --currency KRW --account-seq 1` |
+| 매도 가능 수량 | `toss account sellable-quantity 005930 --account-seq 1` |
+| 수수료율 | `toss account commissions --account-seq 1` |
+| 매수 / 매도 (수량) | `toss order buy/sell <symbol> --qty 1 --price 325000 --account-seq 1` |
+| 금액 기반 주문 (US 전용) | `toss order amount AAPL --amount-usd 100 --account-seq 1` |
+| 주문 목록 / 상세 | `toss order list --status OPEN --account-seq 1` / `toss order show <orderId>` |
+| 정정 / 취소 | `toss order modify/cancel <orderId> --account-seq 1` |
+
+---
+
+## KIS 지원 기능 요약
 
 | 기능 | 명령 | TR_ID (prod) |
 |---|---|---|
@@ -120,9 +196,10 @@ kis order buy --symbol 005930 --qty 1 --price 70000 --profile paper
 
 ## 에이전트 스킬
 
-LLM 에이전트가 이 CLI 를 능숙하고 안전하게 다루도록 만드는 **사용 스킬** 이 함께 제공됩니다.
+LLM 에이전트가 이 CLI 를 능숙하고 안전하게 다루도록 만드는 **사용 스킬** 이 두 증권사 각각 제공됩니다.
 
-- 파일: [docs/skill-usage.md](./docs/skill-usage.md)
+- **KIS 스킬**: [docs/skill-usage.md](./docs/skill-usage.md)
+- **Toss 스킬**: [docs/toss-skill-usage.md](./docs/toss-skill-usage.md)
 - 내용: 명령어 치트시트, 상호작용 패턴(시세 → 요약 / 잔고 → 테이블 / 매수 확인 → 주문), 에러 핸들링, 주문 전 안전 체크리스트
 - 형식: 상단에 YAML frontmatter(`name`, `description`) 가 있어 OpenCode / Claude Code 의 스킬 시스템에 그대로 등록할 수 있습니다.
 
@@ -134,12 +211,25 @@ LLM 에이전트가 이 CLI 를 능숙하고 안전하게 다루도록 만드는
 
 | 경로 | 용도 | 권한 |
 |---|---|---|
-| `~/.kis-cli/config.yaml` | 프로파일(APP_KEY / SECRET / 계좌) | `0600` |
+| `~/.kis-cli/config.yaml` | 프로파일(KIS · Toss 공통) | `0600` |
 | `~/.kis-cli/tokens.json` | 캐시된 access_token (만료 전 자동 재사용) | `0600` |
 
-위치를 바꾸려면 `KIS_CLI_HOME=~/custom kis …` 로 환경변수를 오버라이드하세요.
+위치를 바꾸려면 `KIS_CLI_HOME=~/custom kis …` / `KIS_CLI_HOME=~/custom toss …` 로 환경변수를 오버라이드하세요.
 
-실전 · 모의를 함께 쓰려면 프로파일 두 개를 만드세요.
+`config.yaml` 은 KIS 프로파일(`profiles` / `defaultProfile`)과 Toss 프로파일(`tossProfiles` / `tossDefaultProfile`)을 함께 담습니다. 토큰 캐시는 KIS 가 프로파일 이름을, Toss 가 `toss:<name>` 키를 사용합니다.
+
+```yaml
+defaultProfile: paper
+profiles:
+  paper: { env: paper, appKey: ..., appSecret: ..., accountNumber: '...', accountProductCode: '01' }
+tossDefaultProfile: default
+tossProfiles:
+  default: { clientId: tsck_live_..., clientSecret: tssk_live_..., accountSeq: '1' }
+```
+
+### 실전 · 모의를 함께 쓰려면
+
+**KIS** 는 `paper`(모의) · `prod`(실전) 프로파일을 구분해 관리합니다.
 
 ```bash
 kis auth login --paper --name paper --make-default
@@ -148,6 +238,13 @@ kis auth list
 ```
 
 명령마다 `--profile prod` / `--profile paper` 로 전환합니다.
+
+**Toss** 는 paper/prod 구분이 없는 단일 엔드포인트입니다. 여러 계좌를 쓰려면 `toss auth login --name <name>` 으로 프로파일을 추가로 등록하세요.
+
+```bash
+toss auth login --name default
+toss auth login --name secondary
+```
 
 ### 계좌가 여러 개라면
 
@@ -184,16 +281,19 @@ kis auth list
 
 ## 안전 유의사항
 
-1. **신규 인증 정보 등록은 에이전트가 아닌 사용자가 직접 수행합니다.** `kis auth login` 은 APP_KEY / APP_SECRET / 계좌번호를 새로 받아 저장하는 명령이라 사용자가 로컬 터미널에서 직접 실행해야 합니다. APP_KEY · APP_SECRET 은 숨김(hidden) 입력으로 보호되고, 계좌번호 · 계좌상품코드 · HTS ID 는 일반 텍스트 입력입니다. 반면 등록 이후의 시세·잔고·주문·`kis auth test/show/list/logout` 명령은 저장된 토큰만 사용하므로 에이전트가 직접 실행해도 됩니다. (자세한 동작 원칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "황금 원칙" 참고)
-2. **주문 명령은 기본적으로 확인 프롬프트가 뜹니다.** `kis order buy ... -y` 로만 스킵됩니다. 스크립트에서 `-y` 를 쓰기 전에 반드시 `--profile paper` 로 한 번 돌려 보세요.
-3. **실전 투자를 위한 안전장치는 CLI 가 아닌 당신의 책임입니다.** 주문 수량, 가격, 종목코드의 검증은 호출자가 책임져야 합니다.
-4. **credentials 는 평문 YAML 로 저장됩니다.** 팀 머신이나 CI 에 올리지 마세요. 필요하다면 OS keychain 기반 저장소로 확장하세요.
+1. **신규 인증 정보 등록은 에이전트가 아닌 사용자가 직접 수행합니다.** `kis auth login` / `toss auth login` 은 인증 정보를 새로 받아 저장하는 명령이라 사용자가 로컬 터미널에서 직접 실행해야 합니다. KIS 의 APP_KEY · APP_SECRET 은 숨김(hidden) 입력으로 보호되고, 계좌번호 · 계좌상품코드 · HTS ID 는 일반 텍스트 입력입니다. Toss 의 clientSecret 역시 숨김 입력입니다. 반면 등록 이후의 시세·잔고·주문·`auth test/show/list/logout` 명령은 저장된 토큰만 사용하므로 에이전트가 직접 실행해도 됩니다. (자세한 동작 원칙은 [docs/skill-usage.md](./docs/skill-usage.md) 의 "황금 원칙" 참고)
+2. **주문 명령은 기본적으로 확인 프롬프트가 뜹니다.** `kis order buy ... -y` / `toss order buy ... -y` 로만 스킵됩니다. 스크립트에서 `-y` 를 쓰기 전에 반드시 KIS 는 `--profile paper` 로 한 번 돌려 보세요.
+3. **Toss 는 모의투자(paper) 환경이 없습니다.** 모든 `toss order` 명령은 실자금 계좌에 즉시 실행됩니다(예약 없음). 확인 프롬프트가 필수이며, `-y` 는 사용자가 명시적으로 승인한 뒤에만 사용하세요.
+4. **실전 투자를 위한 안전장치는 CLI 가 아닌 당신의 책임입니다.** 주문 수량, 가격, 종목코드의 검증은 호출자가 책임져야 합니다.
+5. **credentials 는 평문 YAML 로 저장됩니다.** 팀 머신이나 CI 에 올리지 마세요. 필요하다면 OS keychain 기반 저장소로 확장하세요.
 
 ---
 
 ## 라이브러리로도 사용 가능
 
 TypeScript 코드에서도 바로 호출할 수 있습니다.
+
+### KIS
 
 ```ts
 import { KisClient, loadConfig, getProfile } from "koreainvestment-cli";
@@ -213,11 +313,28 @@ console.log(res.output);
 
 `KisClient.call()` 은 `tr_id` 의 prod ⇄ paper 변환, rate-limit 대기, 에러 envelope 파싱을 자동으로 처리합니다.
 
+### Toss
+
+```ts
+import { TossClient, loadConfig, getTossProfile } from "koreainvestment-cli";
+
+const config = await loadConfig();
+const profile = getTossProfile(config, "default");
+const client = new TossClient({ profileName: "default", profile });
+
+const [price] = await client.getPrices({ symbols: ["005930"] });
+console.log(price.lastPrice);
+```
+
+`TossClient` 의 메서드는 엔드포인트별로 타입이 정해져 있어 `tr_id` 교환이나 env 스위치 없이 KIS 보다 단순하게 호출할 수 있습니다.
+
 ---
 
 ## 로드맵
 
 - WebSocket 실시간 시세 (`kis stream price`)
+- Toss WebSocket 실시간 시세 지원
+- Toss 모의투자 환경 지원 (Toss 사이드에서 제공 시)
 - 조건검색 / 체결통보 구독
 - CSV 내보내기 (`kis balance stock --csv`)
 - hashkey 서명 자동 부착

@@ -25,7 +25,7 @@ https://raw.githubusercontent.com/HyeokjaeLee/koreainvestment-cli/main/docs/inst
 
 ## LLM 에이전트를 위한 지시
 
-안녕하세요, 에이전트님. 당신은 사용자가 `koreainvestment-cli` — 한국투자증권 open-trading REST API 를 감싸는 TypeScript CLI — 를 설치하도록 도와야 합니다.
+안녕하세요, 에이전트님. 당신은 사용자가 `koreainvestment-cli` — 한국투자증권 open-trading REST API 를 감싸는 TypeScript CLI — 를 설치하도록 도와야 합니다. 같은 패키지가 토스증권 Open API 용 `toss` 바이너리도 함께 제공하며, 이 문서 하단의 [토스증권 (Toss) 설정 (선택)](#토스증권-toss-설정-선택) 섹션에서 다룹니다. KIS 설정 단계(0~8)는 그대로 진행하면 됩니다.
 
 ### 🚨 절대 원칙 (전체 단계에 공통)
 
@@ -79,11 +79,16 @@ npm install -g koreainvestment-cli
 npm install -g github:HyeokjaeLee/koreainvestment-cli
 ```
 
+이 패키지는 `kis`(한국투자증권) 와 `toss`(토스증권) 두 바이너리를 모두 설치합니다. 두 브로커는 같은 패키지·같은 설정 파일(`~/.kis-cli/config.yaml`)을 공유하지만, 인증 정보는 서로 다른 키(`profiles` / `tossProfiles`)에 저장됩니다.
+
 검증:
 
 ```bash
 kis --version
 # 예: 0.1.0 (또는 그 이상)
+
+# Toss 바이너리도 같이 설치되어 있는지 확인 (선택)
+toss --version
 ```
 
 만약 `kis: command not found` 가 뜨면 사용자의 전역 `bin` 이 `PATH` 에 없을 확률이 높습니다. 사용자 쉘에 맞춰 다음 중 하나를 실행하도록 안내하세요.
@@ -192,6 +197,7 @@ D. 등록이 끝나면 저한테 "완료" 또는 "done" 이라고 알려주세�
 사용자가 "완료" 를 보고하면 4단계 로 넘어갑니다. 만약 오류가 났다고 하면, 에러 메시지 원문을 받아 4단계 의 트러블슈팅 표를 참고해 안내하세요 — 이때도 `kis auth login` 을 에이전트가 대신 돌리면 **안 됩니다**.
 
 **에이전트 금지 사항 요약:**
+
 - ❌ `kis auth login` 을 에이전트가 직접 실행
 - ❌ APP_KEY / APP_SECRET / 계좌번호를 채팅창에서 받아 전달
 - ❌ `~/.kis-cli/config.yaml` 의 내용을 읽어 화면에 표시
@@ -217,7 +223,8 @@ kis auth test --profile paper
 성공이면 5단계로 넘어갑니다.
 
 **실패 처리:**
-- `EGW00101` / `approval_key missing` → 저장된 키가 잘못되었을 수 있습니다. 사용자에게 원인(예: 모의·실전 키 섞임, KIS 포털 점검)을 설명하고, **`kis auth login --paper` 재실행은 사용자 본인이 직접** 하도록 안내하세요(에이전트가 `kis auth login` 을 대신 실행하면 안 됩니다). KIS 포털 점검 공지: https://apiportal.koreainvestment.com/
+
+- `EGW00101` / `approval_key missing` → 저장된 키가 잘못되었을 수 있습니다. 사용자에게 원인(예: 모의·실전 키 섞임, KIS 포털 점검)을 설명하고, **`kis auth login --paper` 재실행은 사용자 본인이 직접** 하도록 안내하세요(에이전트가 `kis auth login` 을 대신 실행하면 안 됩니다). KIS 포털 점검 공지: <https://apiportal.koreainvestment.com/>
 - 그 외 일시 네트워크 오류 → 에이전트가 `kis auth test --profile paper` 한 번만 재시도.
 
 ---
@@ -232,10 +239,12 @@ kis balance stock --profile paper
 ```
 
 기대 동작:
+
 - 첫 번째 명령은 삼성전자의 현재가·시가/고가/저가·거래량이 표로 출력됩니다.
 - 두 번째 명령은 모의계좌가 비어 있으면 "(no rows)" 와 0 으로 채워진 요약 표가 출력됩니다 — 역시 정상입니다.
 
 정상 출력이면 다음 단계로 진행하세요. 에러가 나면 아래 트러블슈팅 표와 대조하세요.
+
 - `Profile "paper" not found` → 아직 `kis auth login --paper` 가 실행되지 않은 상태입니다. **사용자에게** 해당 명령을 실행하라고 안내하세요(에이전트가 대신 실행하면 안 됩니다).
 - `EGW00113` 토큰 만료 → 에이전트가 직접 `kis auth test --profile paper` 로 토큰을 재발급한 뒤 원래 명령을 재시도하세요.
 
@@ -281,7 +290,7 @@ cp /tmp/koreainvestment-cli-skill.md ~/.config/opencode/skills/koreainvestment-c
 
 **"no" 라고 답하면**, 설치를 건너뛰고 다음 문장만 출력하세요.
 
-> "알겠습니다. 나중에 필요하면 https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md 를 참고하시면 됩니다."
+> "알겠습니다. 나중에 필요하면 <https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md> 를 참고하시면 됩니다."
 
 ---
 
@@ -294,6 +303,7 @@ kis doctor --profile paper
 ```
 
 모든 체크가 ✓ 로 찍히면 완료입니다. ✗ 가 있으면 아래 기준으로 처리하세요.
+
 - 인증 관련 ✗ (`Profile not found`, `approval_key missing` 등) → 사용자에게 `kis auth login --paper` 재실행을 안내(에이전트 대행 금지).
 - 그 외 ✗ (네트워크, TPS 초과 등) → 에이전트가 `kis doctor` 를 1회 재시도한 뒤, 그래도 실패하면 증상을 사용자에게 보고.
 
@@ -308,12 +318,14 @@ kis doctor --profile paper
 > "설치 완료입니다. 이제 `kis` 명령을 바로 쓰실 수 있습니다.
 >
 > **제가 바로 실행해드릴 수 있는 것 (등록된 토큰만 사용)**:
+>
 > - `kis quote price 005930 --profile paper` — 삼성전자 현재가
 > - `kis overseas price --exch NAS --symbol AAPL --profile paper` — 애플 현재가
 > - `kis balance stock --profile paper` — 모의투자 잔고
 > - `kis doctor --profile paper` — 환경 점검
 >
 > **사용자님께서 직접 실행하셔야 하는 것 (신규 인증 정보 입력이 필요한 경우)**:
+>
 > - `kis auth login --paper` / `kis auth login --prod` — APP_KEY / APP_SECRET / 계좌번호 입력
 >
 > **주문(매수/매도/정정/취소)은 에이전트가 실행할 수 있지만, 실제 자산을 움직이므로 항상 사용자 확인 후에만 실행합니다.** 자세한 안전 규칙은 [skill-usage.md](https://github.com/HyeokjaeLee/koreainvestment-cli/blob/main/docs/skill-usage.md) 의 '주문 전 안전 체크리스트' 를 따라주세요."
@@ -340,6 +352,8 @@ npm uninstall -g koreainvestment-cli
 rm -rf ~/.kis-cli
 ```
 
+`npm uninstall` 은 `kis` 와 `toss` 두 바이너리를 모두 제거합니다. `rm -rf ~/.kis-cli` 는 두 브로커(KIS·Toss)의 설정 파일과 토큰 캐시를 함께 삭제합니다.
+
 완료.
 
 ---
@@ -364,6 +378,143 @@ profiles:
     appSecret: yyyyyyyy...
     accountNumber: "50123456"
     accountProductCode: "01"
+# --- 토스증권 (Toss) 설정 (선택) ---
+tossDefaultProfile: default
+tossProfiles:
+  default:
+    clientId: tsck_live_xxxxxxxx
+    clientSecret: tssk_live_xxxxxxxx
+    accountSeq: '1'
 ```
 
-`~/.kis-cli/tokens.json` (권한 `0600`) 은 프로파일별 access_token 을 캐시하며, 만료 전 자동으로 재발급합니다.
+`~/.kis-cli/tokens.json` (권한 `0600`) 은 프로파일별 access_token 을 캐시하며, 만료 전 자동으로 재발급합니다. token cache 키는 KIS 는 프로파일명 그대로, Toss 는 `toss:<profileName>` 형태로 저장되어 두 브로커가 충돌하지 않습니다.
+
+---
+
+## 토스증권 (Toss) 설정 (선택)
+
+`toss` 바이너리는 토스증권 Open API 를 다룹니다. KIS(`kis`)와 같은 패키지·같은 설정 파일(`~/.kis-cli/config.yaml`)을 공유하지만, 인증 정보는 `tossProfiles` 키에 분리 저장되어 서로 간섭하지 않습니다.
+
+> 🚨 **중요 원칙 (Toss 공통)**
+>
+> - **토스 인증 정보(clientId/clientSecret) 등록(`toss auth login`)은 사용자가 로컬 터널에서 직접 수행합니다.** 에이전트는 명령어만 안내하고 사용자의 "완료" 보고를 기다리세요.
+> - 사용자가 clientId/clientSecret 등을 채팅창에 보내려 하면 정중히 중단시키고 로컬 터미널의 `toss auth login` 프롬프트에 직접 입력해달라고 안내하세요.
+> - **중요: 토스는 모의투자(paper) 환경이 없습니다 — 모든 `toss order` 명령은 실자금으로 즉시 체결됩니다.**
+
+아래 단계를 순서대로 진행하세요. KIS 설정(0~8단계)과는 독립적이며, KIS 없이 Toss만 설정해도 됩니다.
+
+### 1단계 — 사전 준비
+
+토스증권 Open API clientId/clientSecret 이 있나요? 발급은 토스증권 Open API 사전신청/개발자센터(<https://developers.tossinvest.com>) 를 통해 안내하세요. accountSeq 는 발급받지 않아도 됩니다 — 이후 `toss account list` 로 조회합니다.
+
+"있다" 또는 "발급 완료" 답을 받기 전에는 다음 단계로 넘어가지 마세요.
+
+### 2단계 — 설치 확인
+
+```bash
+toss --version
+```
+
+2단계(KIS 설치)에서 이미 `toss` 바이너리도 함께 설치되었습니다. `toss: command not found` 가 뜨면 KIS 설치 단계의 PATH 설정을 적용 후 터미널을 재시작하세요.
+
+### 3단계 — 인증 정보 등록 (사용자 직접)
+
+> 🚨 **증권 인증은 사용자가 직접 수행합니다.** 에이전트는 절대 `toss auth login` 을 대신 실행하거나 clientId/clientSecret 을 대화창으로 받아 입력하면 안 됩니다.
+
+사용자에게 다음 메시지를 그대로 전달하세요(수정·요약 금지).
+
+```
+아래 명령을 여러분의 로컬 터미널에서 직접 실행해주세요. 저(에이전트)는 이 명령을
+대신 실행할 수 없고, clientId/clientSecret 같은 민감 정보는 제가 절대 보지 않도록
+CLI 가 숨김(hidden) 프롬프트로 직접 받습니다.
+
+   toss auth login
+
+명령을 실행하면 CLI 가 순서대로 다음을 물어봅니다:
+- clientId     (숨김 입력: 화면에 안 보입니다)
+- clientSecret (숨김 입력: 화면에 안 보입니다)
+- accountSeq   (선택, 비워도 됨 — 나중에 `toss account list` 로 확인 후
+                `--account-seq` 로 지정 가능)
+
+성공하면 '✓ 토스 프로파일 "default" 저장 완료' 메시지가 뜹니다.
+프로파일 이름을 바꾸려면 `toss auth login --name <이름>` 을 사용하세요.
+
+등록 결과 확인:
+
+   toss auth list
+
+등록이 끝나면 저한테 "완료" 또는 "done" 이라고 알려주세요.
+```
+
+메시지 전달 후 사용자 응답을 기다리세요. 그 전에는 4단계로 진행하지 마세요.
+
+사용자가 인증 정보 값(clientId, clientSecret 등)을 채팅으로 보내려 하면 정중히 중단시키고 다음과 같이 안내하세요.
+
+> "그 값들은 제게 보내시면 안 됩니다. 보안상 로컬 터미널의 `toss auth login` 프롬프트에만 직접 입력해주세요. 다시 명령을 보여드릴게요: `toss auth login`"
+
+사용자가 "완료" 를 보고하면 4단계로 넘어갑니다.
+
+### 4단계 — 토큰 검증 (에이전트 직접 실행 가능)
+
+`toss auth test` 는 이미 저장된 clientId/clientSecret 으로 토큰 발급만 시도하므로 새 값을 입력받지 않습니다. **에이전트가 직접 실행**하세요.
+
+```bash
+toss auth test
+```
+
+기대 출력:
+
+```
+✓ 토스 접근 토큰 발급 성공. 만료 시각: ...
+```
+
+성공이면 5단계로 넘어갑니다. HTTP 401 등 인증 실패 시 clientId/clientSecret 이 잘못된 것이므로, 사용자에게 `toss auth login` 재실행을 안내하세요(에이전트 대행 금지).
+
+### 5단계 — accountSeq 확인 (에이전트 직접 실행)
+
+```bash
+toss account list
+```
+
+응답에서 `accountSeq`(숫자) 값을 확인하세요. 이후 계좌 연동 명령에는 `--account-seq <그값>` 을 사용합니다.
+
+```bash
+# 예: accountSeq 가 1 인 경우
+toss account holdings --account-seq 1
+```
+
+### 6단계 — 읽기 전용 스모크 테스트 (에이전트 직접 실행)
+
+```bash
+toss market prices --symbols 005930,AAPL --json
+toss account holdings --account-seq 1 --json
+```
+
+두 명령 모두 JSON 결과가 정상 출력되면 성공입니다.
+
+### 7단계 — 마무리 보고
+
+사용자에게 다음 메시지를 전달하세요.
+
+> "Toss 설정 완료입니다. 이제 `toss` 명령을 바로 쓰실 수 있습니다.
+>
+> **주문(`toss order ...`)은 토스에 모의투자 환경이 없으므로 실자금으로 즉시 체결됩니다.** 에이전트가 주문을 실행할 수는 있지만, 항상 사용자 확인 후에만 실행합니다."
+
+또한 Toss 전용 스킬 설치를 제안하세요.
+
+> "Toss 명령을 더 안정적으로 다루기 위한 사용 스킬(`docs/toss-skill-usage.md`) 이 함께 제공됩니다. 스킬 경로에 복사해서 설치할까요? (yes / no)"
+
+### Toss 트러블슈팅
+
+| 증상 | 원인 | 조치 |
+|---|---|---|
+| `Toss 프로파일 "default"을(를) 찾을 수 없습니다` | `toss auth login` 미실행 | 로그인 재실행 (사용자 직접) |
+| 토큰 발급 HTTP 401 | 잘못된 clientId/clientSecret | 재등록 |
+| `accountSeq가 필요합니다` | accountSeq 미지정 | `toss account list` 로 확인 후 `--account-seq` |
+| 주문 확인 프롬프트에서 멈춤 | `toss order` interactive Y/n | `-y` 또는 대화형 터미널 |
+
+디버깅이 필요하면 `TOSS_DEBUG=1` 환경변수를 사용하세요.
+
+```bash
+TOSS_DEBUG=1 toss market prices --symbols 005930 --json
+```

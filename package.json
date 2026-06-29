@@ -7,7 +7,8 @@
   "type": "module",
   "bin": {
     "kis": "./dist/cli.js",
-    "koreainvestment": "./dist/cli.js"
+    "koreainvestment": "./dist/cli.js",
+    "toss": "./dist/toss.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

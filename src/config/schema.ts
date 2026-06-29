@@ -6,26 +6,50 @@ import { z } from "zod";
  * A user typically has two profiles: `prod` (실전투자) and `paper` (모의투자).
  */
 export const ProfileSchema = z.object({
-  env: z.enum(["prod", "paper"]),
-  appKey: z.string().min(10, "appKey is required"),
-  appSecret: z.string().min(10, "appSecret is required"),
-  /** 계좌번호 앞 8자리 (CANO). */
-  accountNumber: z.string().regex(/^\d{8}$/u, "accountNumber must be 8 digits"),
-  /** 계좌상품코드 (ACNT_PRDT_CD). 종합=01, 선물옵션=03, 연금=22, 퇴직연금=29. */
-  accountProductCode: z
-    .string()
-    .regex(/^\d{2}$/u, "accountProductCode must be 2 digits")
-    .default("01"),
-  /** KIS Developers HTS ID (웹소켓 조건검색 등에서 사용). */
-  htsId: z.string().optional(),
+	env: z.enum(["prod", "paper"]),
+	appKey: z.string().min(10, "appKey is required"),
+	appSecret: z.string().min(10, "appSecret is required"),
+	/** 계좌번호 앞 8자리 (CANO). */
+	accountNumber: z.string().regex(/^\d{8}$/u, "accountNumber must be 8 digits"),
+	/** 계좌상품코드 (ACNT_PRDT_CD). 종합=01, 선물옵션=03, 연금=22, 퇴직연금=29. */
+	accountProductCode: z
+		.string()
+		.regex(/^\d{2}$/u, "accountProductCode must be 2 digits")
+		.default("01"),
+	/** KIS Developers HTS ID (웹소켓 조건검색 등에서 사용). */
+	htsId: z.string().optional(),
 });
 
 export type Profile = z.infer<typeof ProfileSchema>;
 
+/**
+ * 토스증권 Open API 인증 프로파일.
+ *
+ * 토스는 단일 base URL 만 사용하며 (prod/paper 구분 없음), 환경은 키 prefix 로 인코딩된다.
+ */
+export const TossProfileSchema = z.object({
+	clientId: z.string().min(10, "clientId is required"),
+	clientSecret: z.string().min(10, "clientSecret is required"),
+	/** 계좌 식별 키 (accountSeq). 주문/잔고 API 의 X-Tossinvest-Account 헤더에 사용. */
+	accountSeq: z
+		.string()
+		.regex(/^\d+$/u, "accountSeq must be numeric")
+		.optional(),
+	/** 계좌번호 (표시용). */
+	accountNo: z.string().optional(),
+	/** 계좌 유형 (BROKERAGE 등, 표시용). */
+	accountType: z.string().optional(),
+});
+
+export type TossProfile = z.infer<typeof TossProfileSchema>;
+
 export const ConfigSchema = z.object({
-  /** Name of the profile used by default. */
-  defaultProfile: z.string().default("paper"),
-  profiles: z.record(z.string(), ProfileSchema).default({}),
+	/** Name of the profile used by default. */
+	defaultProfile: z.string().default("paper"),
+	profiles: z.record(z.string(), ProfileSchema).default({}),
+	/** 토스증권 기본 프로파일 이름. */
+	tossDefaultProfile: z.string().default("default"),
+	tossProfiles: z.record(z.string(), TossProfileSchema).default({}),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
